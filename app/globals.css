@@ -1,0 +1,121 @@
+@import "tailwindcss";
+
+/* ============================================================
+   ManaGame Design Tokens
+   Source: Master Brand, Product UX/UI & Website Experience Spec v2.0
+   ============================================================ */
+
+:root {
+  /* Product canvas */
+  --mg-background: #f8f9f7;
+  --mg-surface: #ffffff;
+  --mg-text: #202624;
+  --mg-text-secondary: #66716e;
+  --mg-border: #e4e9e6;
+
+  /* Brand */
+  --mg-teal: #18b8a6;
+  --mg-mint: #ddf5ef;
+  --mg-sand: #f4ebdd;
+  --mg-blue: #eaf1f8;
+  --mg-coral: #fbe9e5;
+
+  --mg-success: #2e9b72;
+  --mg-error: #c95b58;
+
+  --mg-gradient-from: #19c4b1;
+  --mg-gradient-to: #9bd64a;
+
+  --mg-radius-sm: 8px;
+  --mg-radius-md: 12px;
+  --mg-radius-lg: 16px;
+  --mg-radius-xl: 24px;
+
+  --mg-shadow-subtle: 0 2px 12px rgba(32, 38, 36, 0.05);
+  --mg-shadow-elevated: 0 8px 30px rgba(32, 38, 36, 0.08);
+
+  /* Lab mode (dark storytelling layer only) */
+  --mg-lab-bg: #202624;
+  --mg-lab-text: #f8f9f7;
+
+  --background: var(--mg-background);
+  --foreground: var(--mg-text);
+}
+
+@theme inline {
+  --color-mg-background: var(--mg-background);
+  --color-mg-surface: var(--mg-surface);
+  --color-mg-text: var(--mg-text);
+  --color-mg-text-secondary: var(--mg-text-secondary);
+  --color-mg-border: var(--mg-border);
+
+  --color-mg-teal: var(--mg-teal);
+  --color-mg-mint: var(--mg-mint);
+  --color-mg-sand: var(--mg-sand);
+  --color-mg-blue: var(--mg-blue);
+  --color-mg-coral: var(--mg-coral);
+
+  --color-mg-success: var(--mg-success);
+  --color-mg-error: var(--mg-error);
+
+  --color-mg-lab-bg: var(--mg-lab-bg);
+  --color-mg-lab-text: var(--mg-lab-text);
+
+  --radius-mg-sm: var(--mg-radius-sm);
+  --radius-mg-md: var(--mg-radius-md);
+  --radius-mg-lg: var(--mg-radius-lg);
+  --radius-mg-xl: var(--mg-radius-xl);
+
+  --font-heebo: var(--font-assistant);
+  --font-body: var(--font-assistant);
+  --font-latin: var(--font-inter);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--mg-background);
+  color: var(--mg-text);
+  font-family: var(--font-assistant), Arial, sans-serif;
+}
+
+/* Latin / numeric containers keep LTR direction regardless of ambient RTL */
+.ltr-num {
+  direction: ltr;
+  unicode-bidi: isolate;
+  font-family: var(--font-inter), Arial, sans-serif;
+}
+
+.mg-gradient-text {
+  background: linear-gradient(90deg, var(--mg-gradient-from), var(--mg-gradient-to));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.mg-gradient-bg {
+  background: linear-gradient(90deg, var(--mg-gradient-from), var(--mg-gradient-to));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+::selection {
+  background: var(--mg-mint);
+  color: var(--mg-text);
+}
+
+/* Focus visibility — never rely on color alone */
+:focus-visible {
+  outline: 2px solid var(--mg-teal);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
