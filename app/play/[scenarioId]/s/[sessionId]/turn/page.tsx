@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { getScenario } from "@/content/scenarios";
 import { getDomain } from "@/content/domains";
 import { getStore } from "@/lib/store";
+import { resolveSession } from "@/lib/session-cache";
 import { DecisionFlow } from "@/components/candidate/decision-flow";
 
 export default async function TurnPage({
@@ -12,7 +13,7 @@ export default async function TurnPage({
   const { scenarioId, sessionId } = await params;
   const scenario = getScenario(scenarioId);
   const store = getStore();
-  const session = await store.getSession(sessionId);
+  const session = await resolveSession(sessionId);
   if (!scenario || !session) notFound();
   if (!session.consentAt) redirect(`/play/${scenarioId}/s/${sessionId}/consent`);
   if (session.status === "completed") redirect(`/play/${scenarioId}/s/${sessionId}/complete`);

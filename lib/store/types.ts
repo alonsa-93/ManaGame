@@ -70,6 +70,14 @@ export interface Store {
   getSession(id: string): Promise<SessionRecord | null>;
   updateSession(id: string, patch: Partial<SessionRecord>): Promise<SessionRecord | null>;
   listSessions(): Promise<SessionRecord[]>;
+  /**
+   * Re-seeds a session record into this store instance without going
+   * through createSession's insert semantics. Used only by the
+   * cookie-fallback resiliency layer (lib/session-cache.ts) to self-heal a
+   * cold serverless instance's in-process store from the candidate's own
+   * session cookie. No-op on a real database, which is already authoritative.
+   */
+  hydrateSession(session: SessionRecord): Promise<void>;
 
   addDecision(record: Omit<DecisionRecord, "createdAt">): Promise<DecisionRecord>;
   listDecisions(sessionId: string): Promise<DecisionRecord[]>;

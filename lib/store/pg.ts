@@ -73,6 +73,10 @@ export class PgStore implements Store {
     return rows[0] ? rowToSession(rows[0]) : null;
   }
 
+  // No-op: Postgres is already the authoritative, shared store — there is
+  // no "cold instance" to self-heal, and a real miss here is a real miss.
+  async hydrateSession() {}
+
   async updateSession(id: string, patch: Partial<SessionRecord>) {
     const existing = await this.getSession(id);
     if (!existing) return null;

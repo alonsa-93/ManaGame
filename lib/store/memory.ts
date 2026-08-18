@@ -38,6 +38,10 @@ class MemoryStore implements Store {
     return this.sessions.get(id) ?? null;
   }
 
+  async hydrateSession(session: SessionRecord) {
+    this.sessions.set(session.id, session);
+  }
+
   async updateSession(id: string, patch: Partial<SessionRecord>) {
     const existing = this.sessions.get(id);
     if (!existing) return null;

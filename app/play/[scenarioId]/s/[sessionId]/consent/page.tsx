@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getScenario } from "@/content/scenarios";
-import { getStore } from "@/lib/store";
+import { resolveSession } from "@/lib/session-cache";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert } from "@/components/ui/alert";
@@ -14,7 +14,7 @@ export default async function ConsentPage({
 }) {
   const { scenarioId, sessionId } = await params;
   const scenario = getScenario(scenarioId);
-  const session = await getStore().getSession(sessionId);
+  const session = await resolveSession(sessionId);
   if (!scenario || !session) notFound();
 
   return (
