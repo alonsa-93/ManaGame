@@ -5,6 +5,25 @@ business environments and observed as they decide — not asked how they *would*
 
 Built from the ManaGame Master Brand/UX/UI Spec (v2.0) and the accompanying product PRD.
 
+## Live
+
+**https://mana-game-git-claude-managem-b-c96eb9-alonsa1993-1326s-projects.vercel.app**
+
+This is Vercel's stable "git branch" alias — it always serves the latest push to
+`claude/managem-brand-uiux-spec-7zci61`, deployment protection is off, and it's been
+verified live (homepage, `/technology`, and `/play/supply-chain-manager-1` all return 200
+with correct RTL Hebrew content).
+
+It is **not** `mana-game-amber.vercel.app`. That "production" alias is still pointing at the
+very first deployment and hasn't picked up any commit since — the Vercel project's
+Production Branch setting doesn't match this branch, and the two tools available in this
+session (`create_git_project`, which errors on this repo with `incorrect_git_source_info`,
+and no dedicated "set production branch" / "promote deployment" tool) couldn't fix that
+part. Repointing it takes one dashboard action: **Vercel → mana-game → Settings → Git →
+Production Branch → `claude/managem-brand-uiux-spec-7zci61`** (or merge this branch into
+whatever branch that setting already points to). Everything else about the deployment is
+fine — build succeeds, routes correctly (see the `vercel.json` fix below), and is public.
+
 ## What's here
 
 **Product** (the simulation platform)
@@ -48,6 +67,14 @@ the whole candidate → assessor loop, and all 20 scenarios work immediately:
   an in-process store (`lib/store/memory.ts`). Same interface either way (`lib/store/types.ts`).
 - **Decision parsing**: deterministic heuristic matcher by default; Claude-assisted when
   `ANTHROPIC_API_KEY` is set.
+- **Serverless resiliency**: on Vercel, consecutive requests aren't guaranteed to hit the same
+  warm instance, which would otherwise lose an in-process session mid-flow. `lib/session-cache.ts`
+  writes a compact session snapshot into an httpOnly cookie on every mutation and rehydrates the
+  in-process store from it on a miss (only when no database is configured — inert once one is).
+  Verified with a script that wipes the store mid-session and confirms the flow still completes.
+- **`vercel.json`** pins `"framework": "nextjs"`. Without it, this project's Vercel dashboard
+  setting was somehow unset, which built fine but served 404s for every route at the edge —
+  declaring it in-repo fixed that regardless of dashboard state.
 
 ### Connecting a database (optional, for durable/cross-instance storage)
 
