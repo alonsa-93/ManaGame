@@ -4,6 +4,7 @@ import { getDomain } from "@/content/domains";
 import { getStore } from "@/lib/store";
 import { resolveSession } from "@/lib/session-cache";
 import { DecisionFlow } from "@/components/candidate/decision-flow";
+import { AgentChatFlow } from "@/components/candidate/agent-chat-flow";
 
 export default async function TurnPage({
   params,
@@ -27,6 +28,23 @@ export default async function TurnPage({
   const persistedEvent = events.find((e) => e.turnIndex === session.currentTurn)?.eventHe;
   const turn = scenario.turns.find((t) => t.index === session.currentTurn);
   const initialEventHe = session.currentTurn === 1 ? undefined : persistedEvent ?? turn?.event_he;
+
+  // Conversational-agent flow is the default whenever a real model is
+  // connected; otherwise fall back to the deterministic composer-only flow
+  // (see components/candidate/agent-chat-flow.tsx and decision-flow.tsx).
+  if (process.env.ANTHROPIC_API_KEY) {
+    const conversation = await store.listConversationMessages(sessionId, session.currentTurn);
+    return (
+      <AgentChatFlow
+        scenarioId={scenarioId}
+        scenario={scenario}
+        domainNameHe={domain?.name_he}
+        initialSession={session}
+        initialEventHe={initialEventHe}
+        initialConversation={conversation.map((m) => ({ role: m.role, textHe: m.textHe }))}
+      />
+    );
+  }
 
   return (
     <DecisionFlow

@@ -7,6 +7,7 @@ import type {
   SessionEventRecord,
   ReportRecord,
   ContactSubmission,
+  ConversationMessageRecord,
 } from "@/lib/store/types";
 
 function rowToSession(row: Record<string, unknown>): SessionRecord {
@@ -208,5 +209,29 @@ export class PgStore implements Store {
       `insert into contact_submissions (id, name, role, organization, email, what_to_test, org_size) values ($1,$2,$3,$4,$5,$6,$7)`,
       [record.id, record.name, record.role ?? null, record.organization ?? null, record.email, record.whatToTest ?? null, record.orgSize ?? null]
     );
+  }
+
+  async addConversationMessage(record: Omit<ConversationMessageRecord, "id" | "createdAt">) {
+    await this.pool().query(
+      `insert into turn_conversations (id, session_id, turn_index, role, text_he) values ($1,$2,$3,$4,$5)`,
+      [crypto.randomUUID(), record.sessionId, record.turnIndex, record.role, record.textHe]
+    );
+  }
+
+  async listConversationMessages(sessionId: string, turnIndex?: number) {
+    const { rows } = await this.pool().query(
+      turnIndex === undefined
+        ? `select * from turn_conversations where session_id=$1 order by created_at asc`
+        : `select * from turn_conversations where session_id=$1 and turn_index=$2 order by created_at asc`,
+      turnIndex === undefined ? [sessionId] : [sessionId, turnIndex]
+    );
+    return rows.map((r) => ({
+      id: r.id,
+      sessionId: r.session_id,
+      turnIndex: r.turn_index,
+      role: r.role,
+      textHe: r.text_he,
+      createdAt: new Date(r.created_at).toISOString(),
+    })) as ConversationMessageRecord[];
   }
 }

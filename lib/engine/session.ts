@@ -1,8 +1,10 @@
-import type { Scenario } from "@/lib/scenario-schema";
-import { applyDeltas, initialKpiState, type KpiState } from "@/lib/engine/state";
+import type { Scenario, ScenarioTurn } from "@/lib/scenario-schema";
+import { initialKpiState } from "@/lib/engine/state";
 import { llmAssistedParse } from "@/lib/engine/llm-parser";
 import { buildEvidence } from "@/lib/engine/judge";
 import { aggregate } from "@/lib/engine/aggregator";
+import { computeTurnAdvance } from "@/lib/engine/turn-advance";
+import { agentTurn } from "@/lib/engine/conversational-agent";
 import { getStore } from "@/lib/store";
 import type { SessionRecord } from "@/lib/store/types";
 
@@ -87,48 +89,128 @@ export async function submitDecision(
     }))
   );
 
-  let nextState: KpiState = session.kpiState;
-  for (const m of parseResult.matches) {
-    nextState = applyDeltas(nextState, scenario.kpis, m.option.deltas);
-  }
-
-  const isFinalTurn = turn.index >= scenario.turns.length;
-  const nextTurnIndex = isFinalTurn ? turn.index : turn.index + 1;
-  const nextTurn = scenario.turns.find((t) => t.index === nextTurnIndex);
-
-  const branchEvent = parseResult.matches.find((m) => m.option.nextEvent_he)?.option.nextEvent_he;
-  const nextEventHe = !isFinalTurn ? branchEvent ?? nextTurn?.event_he : undefined;
-
-  if (!isFinalTurn && nextEventHe) {
-    await store.addEvent({
-      id: crypto.randomUUID(),
-      sessionId: session.id,
-      turnIndex: nextTurnIndex,
-      eventHe: nextEventHe,
-    });
-  }
-
-  const kpiHistory = [...session.kpiHistory, { turn: turn.index, state: nextState }];
-
-  const updated = await store.updateSession(session.id, {
-    kpiState: nextState,
-    kpiHistory,
-    currentTurn: nextTurnIndex,
-    status: isFinalTurn ? "completed" : "in_progress",
-    completedAt: isFinalTurn ? new Date().toISOString() : undefined,
-  });
-
-  if (isFinalTurn && updated) {
-    await finalizeReport(scenario, updated);
-  }
+  const matchedOptionKeys = parseResult.matches.map((m) => m.option.key);
+  const { session: updated, isFinalTurn, nextEventHe } = await applyTurnAdvance(scenario, session, turn, matchedOptionKeys);
 
   return {
-    session: updated ?? session,
+    session: updated,
     matchedLabels: parseResult.matches.map((m) => m.option.label_he),
     needsHumanReview: parseResult.needsHumanReview,
     reviewReason: parseResult.reviewReason,
     nextEventHe,
     isFinalTurn,
+  };
+}
+
+/**
+ * Persists the shared tail of a turn cycle — KPI state, branch event,
+ * session advance/completion, final-report generation — given a set of
+ * matched canonical option keys. Built on the pure computeTurnAdvance() so
+ * both the deterministic (submitDecision) and conversational-agent
+ * (submitConversationalTurn) flows apply identical KPI/branching math.
+ */
+async function applyTurnAdvance(scenario: Scenario, session: SessionRecord, turn: ScenarioTurn, matchedOptionKeys: string[]) {
+  const store = getStore();
+  const advance = computeTurnAdvance({ scenario, turn, session, matchedOptionKeys });
+
+  if (!advance.isFinalTurn && advance.nextEventHe) {
+    await store.addEvent({
+      id: crypto.randomUUID(),
+      sessionId: session.id,
+      turnIndex: advance.nextTurnIndex,
+      eventHe: advance.nextEventHe,
+    });
+  }
+
+  const updated = await store.updateSession(session.id, {
+    kpiState: advance.nextState,
+    kpiHistory: advance.kpiHistory,
+    currentTurn: advance.nextTurnIndex,
+    status: advance.isFinalTurn ? "completed" : "in_progress",
+    completedAt: advance.isFinalTurn ? new Date().toISOString() : undefined,
+  });
+
+  if (advance.isFinalTurn && updated) {
+    await finalizeReport(scenario, updated);
+  }
+
+  return { session: updated ?? session, isFinalTurn: advance.isFinalTurn, nextEventHe: advance.nextEventHe };
+}
+
+export interface SubmitConversationalTurnResult {
+  session: SessionRecord;
+  /** "followup" — the agent asked a clarifying question, still on the same turn.
+   *  "advance" — the agent scored the decision and the session moved on (or completed). */
+  kind: "followup" | "advance";
+  agentMessageHe: string;
+  needsHumanReview: boolean;
+  isFinalTurn?: boolean;
+  nextEventHe?: string;
+}
+
+/**
+ * Runs one exchange of the conversational-agent turn flow: parse -> agent
+ * converses and judges directly -> persist -> (on score) advance, using the
+ * same applyTurnAdvance tail as the deterministic flow. See
+ * lib/engine/conversational-agent.ts for why the AI judges here instead of
+ * the option-driven judge.ts path.
+ */
+export async function submitConversationalTurn(
+  scenario: Scenario,
+  session: SessionRecord,
+  rawText: string
+): Promise<SubmitConversationalTurnResult> {
+  const store = getStore();
+  const turn = scenario.turns.find((t) => t.index === session.currentTurn);
+  if (!turn) throw new Error("Invalid turn index");
+
+  const history = await store.listConversationMessages(session.id, turn.index);
+  await store.addConversationMessage({ sessionId: session.id, turnIndex: turn.index, role: "candidate", textHe: rawText });
+
+  const result = await agentTurn({
+    scenario,
+    turn,
+    history: history.map((m) => ({ role: m.role, textHe: m.textHe })),
+    rawText,
+  });
+
+  await store.addConversationMessage({ sessionId: session.id, turnIndex: turn.index, role: "agent", textHe: result.messageHe });
+
+  if (result.action === "ask_followup") {
+    return { session, kind: "followup", agentMessageHe: result.messageHe, needsHumanReview: result.adversarial };
+  }
+
+  const candidateTexts = [...history.filter((m) => m.role === "candidate").map((m) => m.textHe), rawText];
+  const decision = await store.addDecision({
+    id: crypto.randomUUID(),
+    sessionId: session.id,
+    turnIndex: turn.index,
+    rawText: candidateTexts.join("\n---\n"),
+    matchedOptionKeys: result.matchedOptionKeys,
+    confidence: result.adversarial ? 0 : 0.9,
+    needsHumanReview: result.adversarial,
+    reviewReason: result.adversarial ? "injection_flagged" : undefined,
+  });
+
+  await store.addEvidence(
+    result.criteriaScores.map((cs) => ({
+      decisionId: decision.id,
+      criterion: cs.criterion,
+      score: cs.score,
+      evidenceHe: cs.evidence_he,
+      sourceTurn: turn.index,
+    }))
+  );
+
+  const { session: updated, isFinalTurn, nextEventHe } = await applyTurnAdvance(scenario, session, turn, result.matchedOptionKeys);
+
+  return {
+    session: updated,
+    kind: "advance",
+    agentMessageHe: result.messageHe,
+    needsHumanReview: result.adversarial,
+    isFinalTurn,
+    nextEventHe,
   };
 }
 

@@ -63,6 +63,20 @@ create table if not exists reports (
   generated_at timestamptz not null default now()
 );
 
+-- Chat transcript for the conversational-agent turn flow (lib/engine/conversational-agent.ts).
+-- Additive to decisions/decision_evidence, not a replacement: the agent still
+-- writes its final judgment into those existing tables so /assessor needs no
+-- changes. This table only holds the back-and-forth leading up to that.
+create table if not exists turn_conversations (
+  id text primary key,
+  session_id text not null references sessions(id) on delete cascade,
+  turn_index int not null,
+  role text not null,
+  text_he text not null,
+  created_at timestamptz not null default now()
+);
+create index if not exists turn_conversations_session_idx on turn_conversations(session_id);
+
 create table if not exists contact_submissions (
   id text primary key,
   name text not null,

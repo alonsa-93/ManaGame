@@ -3,6 +3,7 @@ import { listScenarios } from "@/content/scenarios";
 import { DOMAINS } from "@/content/domains";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { AgentPingButton } from "@/components/admin/agent-ping-button";
 
 export default function AdminSystemPage() {
   const db = hasDatabase();
@@ -17,10 +18,13 @@ export default function AdminSystemPage() {
           <Badge variant={db ? "mint" : "sand"}>{db ? "מחובר (Postgres)" : "In-process store (demo)"}</Badge>
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-sm text-mg-text">שכבת פרשנות (AI)</span>
-          <Badge variant={process.env.ANTHROPIC_API_KEY ? "mint" : "sand"}>
-            {process.env.ANTHROPIC_API_KEY ? "מודל שפה מחובר" : "מפענח דטרמיניסטי (heuristic)"}
-          </Badge>
+          <span className="text-sm text-mg-text">סוכן שיחה + שיפוט (AI)</span>
+          <div className="flex items-center gap-3">
+            <Badge variant={process.env.ANTHROPIC_API_KEY ? "mint" : "sand"}>
+              {process.env.ANTHROPIC_API_KEY ? "מפתח מוגדר" : "מפענח דטרמיניסטי (heuristic)"}
+            </Badge>
+            {process.env.ANTHROPIC_API_KEY && <AgentPingButton />}
+          </div>
         </div>
         <div className="flex items-center justify-between">
           <span className="text-sm text-mg-text">תחומים</span>

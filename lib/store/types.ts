@@ -54,6 +54,15 @@ export interface ReportRecord {
   generatedAt: string;
 }
 
+export interface ConversationMessageRecord {
+  id: string;
+  sessionId: string;
+  turnIndex: number;
+  role: "candidate" | "agent";
+  textHe: string;
+  createdAt: string;
+}
+
 export interface ContactSubmission {
   id: string;
   name: string;
@@ -92,4 +101,8 @@ export interface Store {
   getReport(sessionId: string): Promise<ReportRecord | null>;
 
   addContactSubmission(record: Omit<ContactSubmission, "createdAt">): Promise<void>;
+
+  /** Chat transcript for the conversational-agent turn flow (lib/engine/conversational-agent.ts). */
+  addConversationMessage(record: Omit<ConversationMessageRecord, "id" | "createdAt">): Promise<void>;
+  listConversationMessages(sessionId: string, turnIndex?: number): Promise<ConversationMessageRecord[]>;
 }

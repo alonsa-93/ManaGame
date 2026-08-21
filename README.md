@@ -55,8 +55,12 @@ actual scenario through the same engine).
   source turn) using only what's authored on the scenario content — no invented scores.
 - `aggregator.ts` — deterministic process-score / outcome-score computation from evidence + final
   KPI state. Pure function; same input always gives the same output.
+- `turn-advance.ts` — pure KPI/branching/completion math for one turn, shared by both flows below.
 - `session.ts` — orchestrates one turn: parse → judge → state update → persist, plus a
   parse-only `previewDecision` used for the "is this what you meant?" confirmation step.
+- `conversational-agent.ts` — the AI-as-judge path (see "Conversational agent" below): converses
+  about a turn (at most one clarifying follow-up) and scores the fixed rubric directly from what
+  was said, instead of reading a pre-authored option's static score.
 
 ## Runs out of the box
 
@@ -96,11 +100,22 @@ No code changes needed — `lib/store/index.ts` switches automatically.
 > project's data without asking first. Rather than do either, the app was built to run fully
 > without a database and upgrade automatically the moment one is connected.
 
-### Connecting an LLM (optional, for AI-assisted parsing)
+### Connecting an LLM (optional, for AI-assisted parsing and the conversational agent)
 
-Set `ANTHROPIC_API_KEY`. The rest of the pipeline (state engine, judge, aggregator) is identical
-either way — per spec, the model interprets language, the engine still computes state
-deterministically.
+Set `ANTHROPIC_API_KEY`. Two independent capabilities turn on together:
+
+- **Parsing** (`llm-parser.ts`): free text → matched canonical action, via a forced tool call.
+  The engine still computes state deterministically either way (heuristic or model-assisted).
+- **Conversational agent** (`conversational-agent.ts`): the candidate-facing turn UI switches from
+  the composer-only `DecisionFlow` to the chat-based `AgentChatFlow`
+  (`components/candidate/agent-chat-flow.tsx`). The agent may ask exactly one clarifying
+  follow-up question per turn, then scores the fixed 9-criterion rubric directly from the
+  conversation (`decision_evidence`) while still using the turn's canonical option vocabulary to
+  drive deterministic KPI deltas and branching — so `/assessor` needs no changes to display it.
+  The full exchange is logged in `turn_conversations` (run `npm run db:migrate` after pulling this
+  to pick up the new table). Falls back to the deterministic `DecisionFlow` automatically when no
+  key is set. `/admin/system` has an on-demand "בדיקת חיבור לסוכן" button that makes one real
+  (cheap) call to confirm the key actually works — not just that it's present.
 
 ## Scope notes / what's intentionally lighter than the full spec
 
@@ -126,6 +141,8 @@ npm run dev
 ## Verifying a build
 
 ```bash
+npm test                    # unit tests (vitest) — pure engine logic: agent-output validation,
+                             # turn-advance math, memory store
 npm run build
 npm run start -- -p 3100   # in one terminal
 npm run smoke               # in another — Playwright checks every page + a full candidate run

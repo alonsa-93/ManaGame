@@ -6,6 +6,7 @@ import type {
   SessionEventRecord,
   ReportRecord,
   ContactSubmission,
+  ConversationMessageRecord,
 } from "@/lib/store/types";
 
 /**
@@ -23,6 +24,7 @@ class MemoryStore implements Store {
   events: SessionEventRecord[] = [];
   reports = new Map<string, ReportRecord>();
   contacts: ContactSubmission[] = [];
+  conversationMessages: ConversationMessageRecord[] = [];
 
   async createSession(input: Omit<SessionRecord, "createdAt" | "status"> & { status?: SessionRecord["status"] }) {
     const record: SessionRecord = {
@@ -97,6 +99,16 @@ class MemoryStore implements Store {
 
   async addContactSubmission(record: Omit<ContactSubmission, "createdAt">) {
     this.contacts.push({ ...record, createdAt: new Date().toISOString() });
+  }
+
+  async addConversationMessage(record: Omit<ConversationMessageRecord, "id" | "createdAt">) {
+    this.conversationMessages.push({ ...record, id: crypto.randomUUID(), createdAt: new Date().toISOString() });
+  }
+
+  async listConversationMessages(sessionId: string, turnIndex?: number) {
+    return this.conversationMessages.filter(
+      (m) => m.sessionId === sessionId && (turnIndex === undefined || m.turnIndex === turnIndex)
+    );
   }
 }
 
