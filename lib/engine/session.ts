@@ -5,6 +5,7 @@ import { buildEvidence } from "@/lib/engine/judge";
 import { aggregate } from "@/lib/engine/aggregator";
 import { computeTurnAdvance } from "@/lib/engine/turn-advance";
 import { agentTurn } from "@/lib/engine/conversational-agent";
+import { notifyMake, siteUrl } from "@/lib/integrations/make-webhook";
 import { getStore } from "@/lib/store";
 import type { SessionRecord } from "@/lib/store/types";
 
@@ -88,6 +89,22 @@ export async function submitDecision(
       sourceTurn: e.sourceTurn,
     }))
   );
+
+  if (parseResult.needsHumanReview) {
+    // Awaited deliberately: Vercel serverless functions can be torn down the
+    // moment the response is sent, so an un-awaited "fire-and-forget" call
+    // here would risk never actually reaching Make. notifyMake() itself
+    // never throws, so this can't break the candidate flow either way.
+    await notifyMake({
+      event: "needs_human_review",
+      sessionId: session.id,
+      candidateName: session.candidateName,
+      scenarioTitle: scenario.title_he,
+      reportUrl: `${siteUrl()}/assessor/sessions/${session.id}`,
+      turnIndex: turn.index,
+      reviewReason: parseResult.reviewReason,
+    });
+  }
 
   const matchedOptionKeys = parseResult.matches.map((m) => m.option.key);
   const { session: updated, isFinalTurn, nextEventHe } = await applyTurnAdvance(scenario, session, turn, matchedOptionKeys);
@@ -202,6 +219,18 @@ export async function submitConversationalTurn(
     }))
   );
 
+  if (result.adversarial) {
+    await notifyMake({
+      event: "needs_human_review",
+      sessionId: session.id,
+      candidateName: session.candidateName,
+      scenarioTitle: scenario.title_he,
+      reportUrl: `${siteUrl()}/assessor/sessions/${session.id}`,
+      turnIndex: turn.index,
+      reviewReason: "injection_flagged",
+    });
+  }
+
   const { session: updated, isFinalTurn, nextEventHe } = await applyTurnAdvance(scenario, session, turn, result.matchedOptionKeys);
 
   return {
@@ -230,5 +259,16 @@ export async function finalizeReport(scenario: Scenario, session: SessionRecord)
     outcomeScore: result.outcomeScore,
     criteriaScores: result.criteriaScores,
   });
+
+  await notifyMake({
+    event: "session_completed",
+    sessionId: session.id,
+    candidateName: session.candidateName,
+    scenarioTitle: scenario.title_he,
+    reportUrl: `${siteUrl()}/assessor/sessions/${session.id}`,
+    processScore: result.processScore,
+    outcomeScore: result.outcomeScore,
+  });
+
   return result;
 }

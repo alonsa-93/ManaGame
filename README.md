@@ -117,6 +117,19 @@ Set `ANTHROPIC_API_KEY`. Two independent capabilities turn on together:
   key is set. `/admin/system` has an on-demand "בדיקת חיבור לסוכן" button that makes one real
   (cheap) call to confirm the key actually works — not just that it's present.
 
+### Connecting Make (optional, for notifications/automation)
+
+Set `MAKE_WEBHOOK_URL` to a Make.com "Custom webhook" URL. `lib/integrations/make-webhook.ts`
+POSTs a small JSON event (`{event, sessionId, candidateName, scenarioTitle, reportUrl, ...}`) to
+it on two triggers: `session_completed` (session finished, includes process/outcome scores) and
+`needs_human_review` (a decision got flagged, from either the deterministic or conversational-agent
+flow). All routing — send an email, post to Slack, add a CRM row, whatever — is configured inside
+the Make scenario itself, not in this repo; ManaGame only knows the webhook URL and event shape.
+Never blocks the candidate/session flow: a down or unconfigured webhook is a silent no-op.
+
+A starter scenario (webhook → router → "session completed" / "needs review" email) already exists
+in the account this was built for — see Make scenario `ManaGame — אירועי סימולציה`.
+
 ## Scope notes / what's intentionally lighter than the full spec
 
 - **Admin** is a content *browser* (scenario/turn/delta viewer, event list, fixed rubric view,
