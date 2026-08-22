@@ -17,9 +17,11 @@ export default async function ReportPage({ params }: { params: Promise<{ session
   if (!scenario) notFound();
   const domain = getDomain(scenario.domainKey);
 
-  const report = await store.getReport(sessionId);
-  const decisions = await store.listDecisions(sessionId);
-  const evidence = await store.listEvidence(sessionId);
+  const [report, decisions, evidence] = await Promise.all([
+    store.getReport(sessionId),
+    store.listDecisions(sessionId),
+    store.listEvidence(sessionId),
+  ]);
 
   const criteriaScores = (report?.criteriaScores as
     | { criterion: string; label_he: string; measured: boolean; score100: number | null }[]

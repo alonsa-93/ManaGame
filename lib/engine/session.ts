@@ -1,13 +1,15 @@
 import type { Scenario, ScenarioTurn } from "@/lib/scenario-schema";
 import { initialKpiState } from "@/lib/engine/state";
 import { llmAssistedParse } from "@/lib/engine/llm-parser";
+import type { ParseResult } from "@/lib/engine/parser";
 import { buildEvidence } from "@/lib/engine/judge";
 import { aggregate } from "@/lib/engine/aggregator";
 import { computeTurnAdvance } from "@/lib/engine/turn-advance";
 import { agentTurn } from "@/lib/engine/conversational-agent";
+import { hashRawText, matchesFromConfirmedKeys } from "@/lib/engine/confirmed-decision";
 import { notifyMake, siteUrl } from "@/lib/integrations/make-webhook";
-import { getStore } from "@/lib/store";
-import type { SessionRecord } from "@/lib/store/types";
+import { getStore, hasDatabase } from "@/lib/store";
+import type { SessionRecord, TurnEvidenceEntry } from "@/lib/store/types";
 
 export function startSession(scenario: Scenario, input: { candidateName?: string; candidateEmail?: string }) {
   const store = getStore();
@@ -21,13 +23,18 @@ export function startSession(scenario: Scenario, input: { candidateName?: string
     currentTurn: 1,
     kpiState: initialKpiState(scenario.kpis),
     kpiHistory: [{ turn: 0, state: initialKpiState(scenario.kpis) }],
+    turnEvidence: [],
   });
 }
 
 export interface PreviewResult {
   matchedLabels: string[];
+  matchedOptionKeys: string[];
+  confidence: number;
   needsHumanReview: boolean;
   reviewReason?: string;
+  /** Binds this preview to the exact text it was computed from — see confirmed-decision.ts. */
+  rawTextHash: string;
 }
 
 /**
@@ -42,9 +49,21 @@ export async function previewDecision(scenario: Scenario, session: SessionRecord
   const parseResult = await llmAssistedParse(rawText, turn);
   return {
     matchedLabels: parseResult.matches.map((m) => m.option.label_he),
+    matchedOptionKeys: parseResult.matches.map((m) => m.option.key),
+    confidence: parseResult.confidence,
     needsHumanReview: parseResult.needsHumanReview,
     reviewReason: parseResult.reviewReason,
+    rawTextHash: hashRawText(rawText),
   };
+}
+
+/** What commitDecision needs from a prior previewDecision call to trust it instead of re-parsing. */
+export interface ConfirmedPreview {
+  rawTextHash: string;
+  matchedOptionKeys: string[];
+  confidence: number;
+  needsHumanReview: boolean;
+  reviewReason?: string;
 }
 
 export interface SubmitDecisionResult {
@@ -56,17 +75,49 @@ export interface SubmitDecisionResult {
   isFinalTurn: boolean;
 }
 
-/** Runs one full decision cycle: parse -> judge -> deterministic state update -> persist. */
+/**
+ * Runs one full decision cycle: parse -> judge -> deterministic state update -> persist.
+ *
+ * expectedTurn is the turn the client observed when it fired this submit
+ * (its local session.currentTurn at click time). If the freshly-read
+ * session has already moved past that — a retried request, a duplicate
+ * from a double-click/back-button, or a stale replay after the original
+ * request already completed — this no-ops and returns the current,
+ * already-correct state instead of scoring the same text again against the
+ * wrong turn or duplicating evidence. Does not cover two truly
+ * simultaneous requests racing on the same turn (that needs a DB-level
+ * compare-and-swap on the write itself, not just this read-time guard).
+ *
+ * confirmedPreview, when its rawTextHash still matches rawText, is trusted
+ * directly instead of re-running llmAssistedParse — without this, the
+ * model's second (non-deterministic) call could classify the same text
+ * differently than the "is this what you meant?" screen the candidate just
+ * confirmed, scoring them on an interpretation they never actually saw.
+ */
 export async function submitDecision(
   scenario: Scenario,
   session: SessionRecord,
-  rawText: string
+  rawText: string,
+  expectedTurn: number,
+  confirmedPreview?: ConfirmedPreview
 ): Promise<SubmitDecisionResult> {
   const store = getStore();
+  if (session.status === "completed" || session.currentTurn !== expectedTurn) {
+    return { session, matchedLabels: [], needsHumanReview: false, isFinalTurn: session.status === "completed" };
+  }
   const turn = scenario.turns.find((t) => t.index === session.currentTurn);
   if (!turn) throw new Error("Invalid turn index");
 
-  const parseResult = await llmAssistedParse(rawText, turn);
+  const parseResult: ParseResult =
+    confirmedPreview && confirmedPreview.rawTextHash === hashRawText(rawText)
+      ? {
+          matches: matchesFromConfirmedKeys(turn, confirmedPreview.matchedOptionKeys),
+          confidence: confirmedPreview.confidence,
+          needsHumanReview: confirmedPreview.needsHumanReview,
+          reviewReason: confirmedPreview.reviewReason,
+          flaggedInjection: false, // already screened during preview; that result carries forward via needsHumanReview/reviewReason
+        }
+      : await llmAssistedParse(rawText, turn);
 
   const decision = await store.addDecision({
     id: crypto.randomUUID(),
@@ -107,7 +158,8 @@ export async function submitDecision(
   }
 
   const matchedOptionKeys = parseResult.matches.map((m) => m.option.key);
-  const { session: updated, isFinalTurn, nextEventHe } = await applyTurnAdvance(scenario, session, turn, matchedOptionKeys);
+  const newEvidence: TurnEvidenceEntry[] = evidence.map((e) => ({ criterion: e.criterion, score: e.score, sourceTurn: e.sourceTurn }));
+  const { session: updated, isFinalTurn, nextEventHe } = await applyTurnAdvance(scenario, session, turn, matchedOptionKeys, newEvidence);
 
   return {
     session: updated,
@@ -125,8 +177,20 @@ export async function submitDecision(
  * matched canonical option keys. Built on the pure computeTurnAdvance() so
  * both the deterministic (submitDecision) and conversational-agent
  * (submitConversationalTurn) flows apply identical KPI/branching math.
+ *
+ * newEvidence is folded onto session.turnEvidence (not just written to the
+ * decisions/decision_evidence tables) so finalizeReport can score from the
+ * session record itself — which, via the resiliency cookie, survives a cold
+ * serverless instance even when no database is connected. See
+ * lib/session-cache.ts and TurnEvidenceEntry in lib/store/types.ts.
  */
-async function applyTurnAdvance(scenario: Scenario, session: SessionRecord, turn: ScenarioTurn, matchedOptionKeys: string[]) {
+async function applyTurnAdvance(
+  scenario: Scenario,
+  session: SessionRecord,
+  turn: ScenarioTurn,
+  matchedOptionKeys: string[],
+  newEvidence: TurnEvidenceEntry[] = []
+) {
   const store = getStore();
   const advance = computeTurnAdvance({ scenario, turn, session, matchedOptionKeys });
 
@@ -142,6 +206,7 @@ async function applyTurnAdvance(scenario: Scenario, session: SessionRecord, turn
   const updated = await store.updateSession(session.id, {
     kpiState: advance.nextState,
     kpiHistory: advance.kpiHistory,
+    turnEvidence: [...session.turnEvidence, ...newEvidence],
     currentTurn: advance.nextTurnIndex,
     status: advance.isFinalTurn ? "completed" : "in_progress",
     completedAt: advance.isFinalTurn ? new Date().toISOString() : undefined,
@@ -170,26 +235,42 @@ export interface SubmitConversationalTurnResult {
  * converses and judges directly -> persist -> (on score) advance, using the
  * same applyTurnAdvance tail as the deterministic flow. See
  * lib/engine/conversational-agent.ts for why the AI judges here instead of
- * the option-driven judge.ts path.
+ * the option-driven judge.ts path. See submitDecision's doc comment for
+ * what expectedTurn guards against and its limits.
  */
 export async function submitConversationalTurn(
   scenario: Scenario,
   session: SessionRecord,
-  rawText: string
+  rawText: string,
+  expectedTurn: number
 ): Promise<SubmitConversationalTurnResult> {
   const store = getStore();
+  if (session.status === "completed" || session.currentTurn !== expectedTurn) {
+    return { session, kind: "advance", agentMessageHe: "", needsHumanReview: false, isFinalTurn: session.status === "completed" };
+  }
   const turn = scenario.turns.find((t) => t.index === session.currentTurn);
   if (!turn) throw new Error("Invalid turn index");
 
   const history = await store.listConversationMessages(session.id, turn.index);
-  await store.addConversationMessage({ sessionId: session.id, turnIndex: turn.index, role: "candidate", textHe: rawText });
 
-  const result = await agentTurn({
-    scenario,
-    turn,
-    history: history.map((m) => ({ role: m.role, textHe: m.textHe })),
-    rawText,
-  });
+  // Persisting the candidate's message and calling the agent are
+  // independent — agentTurn takes rawText separately from history, so it
+  // doesn't need this write to have landed first. Run them concurrently
+  // instead of paying for two sequential round trips.
+  const [, result] = await Promise.all([
+    store.addConversationMessage({ sessionId: session.id, turnIndex: turn.index, role: "candidate", textHe: rawText }),
+    agentTurn({
+      scenario,
+      turn,
+      history: history.map((m) => ({ role: m.role, textHe: m.textHe })),
+      rawText,
+      // Without a database, conversation history read above is per-instance
+      // and unreliable across a cold serverless start — never offer a
+      // follow-up in that mode rather than risk resetting the "at most one
+      // follow-up" limit indefinitely. See conversational-agent.ts.
+      forceScore: !hasDatabase(),
+    }),
+  ]);
 
   await store.addConversationMessage({ sessionId: session.id, turnIndex: turn.index, role: "agent", textHe: result.messageHe });
 
@@ -218,6 +299,11 @@ export async function submitConversationalTurn(
       sourceTurn: turn.index,
     }))
   );
+  const newEvidence: TurnEvidenceEntry[] = result.criteriaScores.map((cs) => ({
+    criterion: cs.criterion,
+    score: cs.score,
+    sourceTurn: turn.index,
+  }));
 
   if (result.adversarial) {
     await notifyMake({
@@ -231,7 +317,7 @@ export async function submitConversationalTurn(
     });
   }
 
-  const { session: updated, isFinalTurn, nextEventHe } = await applyTurnAdvance(scenario, session, turn, result.matchedOptionKeys);
+  const { session: updated, isFinalTurn, nextEventHe } = await applyTurnAdvance(scenario, session, turn, result.matchedOptionKeys, newEvidence);
 
   return {
     session: updated,
@@ -245,11 +331,17 @@ export async function submitConversationalTurn(
 
 export async function finalizeReport(scenario: Scenario, session: SessionRecord) {
   const store = getStore();
-  const evidenceRecords = await store.listEvidence(session.id);
-  const evidence = evidenceRecords.map((e) => ({
-    criterion: e.criterion as never,
+  // Scored from session.turnEvidence — carried on the session record itself
+  // (and therefore on the resiliency cookie in no-database mode) — rather
+  // than store.listEvidence(), which is per-serverless-instance and
+  // unreliable across cold starts when no database is connected. evidence_he
+  // is intentionally blank here (kept out of the session/cookie to control
+  // size); the assessor report page still gets verbatim quotes from
+  // store.listEvidence() directly, unrelated to this score computation.
+  const evidence = session.turnEvidence.map((e) => ({
+    criterion: e.criterion,
     score: e.score,
-    evidence_he: e.evidenceHe,
+    evidence_he: "",
     sourceTurn: e.sourceTurn,
   }));
   const result = aggregate(evidence, scenario.kpis, session.kpiState);

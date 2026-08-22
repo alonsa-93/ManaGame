@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { Scenario } from "@/lib/scenario-schema";
+import type { ScenarioPublicView } from "@/lib/engine/turn-view";
 import type { SessionRecord } from "@/lib/store/types";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -24,14 +24,14 @@ type ChatMessage = { role: "candidate" | "agent"; textHe: string };
  */
 export function AgentChatFlow({
   scenarioId,
-  scenario,
+  view: initialView,
   domainNameHe,
   initialSession,
   initialEventHe,
   initialConversation,
 }: {
   scenarioId: string;
-  scenario: Scenario;
+  view: ScenarioPublicView;
   domainNameHe?: string;
   initialSession: SessionRecord;
   initialEventHe?: string;
@@ -39,6 +39,7 @@ export function AgentChatFlow({
 }) {
   const router = useRouter();
   const [session, setSession] = useState(initialSession);
+  const [scenarioView, setScenarioView] = useState(initialView);
   const [eventHe, setEventHe] = useState(initialEventHe);
   const [messages, setMessages] = useState<ChatMessage[]>(initialConversation);
   const [draft, setDraft] = useState("");
@@ -48,14 +49,12 @@ export function AgentChatFlow({
   const [previousKpiState, setPreviousKpiState] = useState(session.kpiState);
   const threadEndRef = useRef<HTMLDivElement>(null);
 
-  const turn = scenario.turns.find((t) => t.index === session.currentTurn);
-  const totalTurns = scenario.turns.length;
+  const turn = scenarioView.turn;
+  const totalTurns = scenarioView.totalTurns;
 
   useEffect(() => {
     threadEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages]);
-
-  if (!turn) return null;
 
   async function handleSend() {
     const text = draft.trim();
@@ -67,7 +66,7 @@ export function AgentChatFlow({
     setDraft("");
 
     try {
-      const result = await submitConversationalTurnAction(scenarioId, session.id, text);
+      const result = await submitConversationalTurnAction(scenarioId, session.id, text, session.currentTurn);
       setMessages((prev) => [...prev, { role: "agent", textHe: result.agentMessageHe }]);
       setReviewNotice(result.needsHumanReview);
 
@@ -80,6 +79,7 @@ export function AgentChatFlow({
           return;
         }
 
+        if (result.nextView) setScenarioView(result.nextView);
         setEventHe(result.nextEventHe);
         setMessages([]);
       }
@@ -106,8 +106,8 @@ export function AgentChatFlow({
       </div>
 
       <Card className="p-6 sm:p-8 mb-6">
-        <h1 className="text-xl sm:text-2xl font-semibold text-mg-text mb-4">{scenario.title_he}</h1>
-        <KpiStrip kpis={scenario.kpis} state={session.kpiState} previous={previousKpiState} />
+        <h1 className="text-xl sm:text-2xl font-semibold text-mg-text mb-4">{scenarioView.title_he}</h1>
+        <KpiStrip kpis={scenarioView.kpis} state={session.kpiState} previous={previousKpiState} />
       </Card>
 
       {eventHe && messages.length === 0 && (

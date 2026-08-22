@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { getStore, hasDatabase } from "@/lib/store";
 import type { SessionRecord } from "@/lib/store/types";
+import { signCookiePayload, verifyCookiePayload } from "@/lib/session-cookie-sign";
 
 /**
  * Resiliency layer for the in-process store on serverless deployments.
@@ -29,7 +30,12 @@ function cookieName(sessionId: string) {
 export async function persistSessionCookie(session: SessionRecord) {
   if (hasDatabase()) return; // Postgres already persists this durably.
   const store = await cookies();
-  store.set(cookieName(session.id), JSON.stringify(session), {
+  const payload = JSON.stringify(session);
+  const signature = signCookiePayload(payload);
+  // Signature first, first "." is the delimiter — base64url never contains
+  // a literal ".", but the JSON payload (Hebrew scenario/candidate text)
+  // certainly does, so this can't be a naive raw.split(".").
+  store.set(cookieName(session.id), `${signature}.${payload}`, {
     httpOnly: true,
     sameSite: "lax",
     path: "/play",
@@ -47,8 +53,16 @@ export async function resolveSession(sessionId: string): Promise<SessionRecord |
   const raw = cookieStore.get(cookieName(sessionId))?.value;
   if (!raw) return null;
 
+  const dotIndex = raw.indexOf(".");
+  if (dotIndex === -1) return null;
+  const signature = raw.slice(0, dotIndex);
+  const payload = raw.slice(dotIndex + 1);
+  // Reject tampered/forged cookies outright — a candidate must not be able
+  // to edit their own kpiState/currentTurn/status to dictate their score.
+  if (!verifyCookiePayload(payload, signature)) return null;
+
   try {
-    const parsed = JSON.parse(raw) as SessionRecord;
+    const parsed = JSON.parse(payload) as SessionRecord;
     if (parsed.id !== sessionId) return null;
     await store.hydrateSession(parsed);
     return parsed;

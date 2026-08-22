@@ -1,5 +1,11 @@
 // One-off script: derive brand raster assets from the supplied logo PNG.
 // Source is a horizontal lockup (mark + wordmark + tagline) on transparent bg.
+//
+// `sharp` is intentionally NOT a project dependency — its native binaries
+// (~46MB) would get traced into every Vercel serverless function for a
+// script that only ever runs locally when brand assets change. Run this
+// with `npx -y sharp-cli` style ad hoc install, or `npm install --no-save
+// sharp` locally, then `node scripts/prep-brand-assets.mjs`.
 import sharp from "sharp";
 import path from "node:path";
 import fs from "node:fs";

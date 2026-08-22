@@ -73,8 +73,12 @@ the whole candidate → assessor loop, and all 20 scenarios work immediately:
   `ANTHROPIC_API_KEY` is set.
 - **Serverless resiliency**: on Vercel, consecutive requests aren't guaranteed to hit the same
   warm instance, which would otherwise lose an in-process session mid-flow. `lib/session-cache.ts`
-  writes a compact session snapshot into an httpOnly cookie on every mutation and rehydrates the
-  in-process store from it on a miss (only when no database is configured — inert once one is).
+  writes a compact, HMAC-signed session snapshot into an httpOnly cookie on every mutation
+  (`lib/session-cookie-sign.ts` — signing prevents a candidate from editing the cookie via
+  devtools/curl to forge their own KPI state or turn progress) and rehydrates the in-process store
+  from it on a miss (only when no database is configured — inert once one is). The snapshot
+  includes accumulated per-criterion evidence (not just KPI state), so the final report still
+  scores correctly even when a session's turns land on different cold serverless instances.
   Verified with a script that wipes the store mid-session and confirms the flow still completes.
 - **`vercel.json`** pins `"framework": "nextjs"`. Without it, this project's Vercel dashboard
   setting was somehow unset, which built fine but served 404s for every route at the edge —
@@ -143,6 +147,16 @@ in the account this was built for — see Make scenario `ManaGame — אירוע
 - Fixed 9-criterion rubric (`lib/scenario-schema.ts`, `CRITERIA`) shared across every domain —
   this is what keeps cross-domain evidence, reports and (future) comparisons apples-to-apples
   without a bespoke rubric per scenario.
+- **Known content gap**: a mechanical check across all 20 scenarios (every path through the
+  deterministic flow — one option per turn) found that all 20 have at least one candidate path
+  that accumulates fewer than 3 distinct measured criteria, which `aggregator.ts` requires for a
+  non-null process score. In 9 of the 20, the worst path measures *zero* criteria — and that
+  worst path tends to be exactly the "spin/centralize/minimize-disclosure" pattern you'd most
+  want to be able to score. Fixing this means adding `criteriaSignals` to specific options across
+  `content/scenarios/*.ts` — a content-authoring task, not a code fix; not done in this pass.
+- `scripts/smoke-test.mjs` drives the deterministic composer flow (`DecisionFlow`) specifically —
+  it will fail if it runs somewhere `ANTHROPIC_API_KEY` is set, since `/turn` then renders the
+  conversational `AgentChatFlow` instead. Not yet updated to detect and exercise both flows.
 
 ## Local development
 

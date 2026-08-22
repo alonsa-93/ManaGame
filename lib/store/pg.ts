@@ -21,6 +21,7 @@ function rowToSession(row: Record<string, unknown>): SessionRecord {
     currentTurn: row.current_turn as number,
     kpiState: row.kpi_state as SessionRecord["kpiState"],
     kpiHistory: row.kpi_history as SessionRecord["kpiHistory"],
+    turnEvidence: (row.turn_evidence as SessionRecord["turnEvidence"]) ?? [],
     consentAt: row.consent_at ? new Date(row.consent_at as string).toISOString() : undefined,
     completedAt: row.completed_at ? new Date(row.completed_at as string).toISOString() : undefined,
     createdAt: new Date(row.created_at as string).toISOString(),
@@ -51,8 +52,8 @@ export class PgStore implements Store {
   async createSession(input: Omit<SessionRecord, "createdAt" | "status"> & { status?: SessionRecord["status"] }) {
     const status = input.status ?? "not_started";
     const { rows } = await this.pool().query(
-      `insert into sessions (id, scenario_id, candidate_name, candidate_email, status, seed, current_turn, kpi_state, kpi_history, consent_at)
-       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) returning *`,
+      `insert into sessions (id, scenario_id, candidate_name, candidate_email, status, seed, current_turn, kpi_state, kpi_history, turn_evidence, consent_at)
+       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) returning *`,
       [
         input.id,
         input.scenarioId,
@@ -63,6 +64,7 @@ export class PgStore implements Store {
         input.currentTurn,
         JSON.stringify(input.kpiState),
         JSON.stringify(input.kpiHistory ?? []),
+        JSON.stringify(input.turnEvidence ?? []),
         input.consentAt ?? null,
       ]
     );
@@ -83,7 +85,7 @@ export class PgStore implements Store {
     if (!existing) return null;
     const merged = { ...existing, ...patch };
     const { rows } = await this.pool().query(
-      `update sessions set candidate_name=$2, candidate_email=$3, status=$4, current_turn=$5, kpi_state=$6, kpi_history=$7, consent_at=$8, completed_at=$9 where id=$1 returning *`,
+      `update sessions set candidate_name=$2, candidate_email=$3, status=$4, current_turn=$5, kpi_state=$6, kpi_history=$7, turn_evidence=$8, consent_at=$9, completed_at=$10 where id=$1 returning *`,
       [
         id,
         merged.candidateName ?? null,
@@ -92,6 +94,7 @@ export class PgStore implements Store {
         merged.currentTurn,
         JSON.stringify(merged.kpiState),
         JSON.stringify(merged.kpiHistory),
+        JSON.stringify(merged.turnEvidence ?? []),
         merged.consentAt ?? null,
         merged.completedAt ?? null,
       ]
@@ -129,13 +132,21 @@ export class PgStore implements Store {
 
   async addEvidence(records: Omit<EvidenceRecord, "id">[]) {
     if (records.length === 0) return;
-    const pool = this.pool();
-    for (const r of records) {
-      await pool.query(
-        `insert into decision_evidence (id, decision_id, criterion, score, evidence_he, source_turn) values ($1,$2,$3,$4,$5,$6)`,
-        [crypto.randomUUID(), r.decisionId, r.criterion, r.score, r.evidenceHe, r.sourceTurn]
-      );
-    }
+    // Single multi-row insert via unnest() instead of one round trip per
+    // criterion (a turn typically evidences 3-9) — same statement shape
+    // regardless of batch size, one network round trip either way.
+    await this.pool().query(
+      `insert into decision_evidence (id, decision_id, criterion, score, evidence_he, source_turn)
+       select * from unnest($1::text[], $2::text[], $3::text[], $4::numeric[], $5::text[], $6::int[])`,
+      [
+        records.map(() => crypto.randomUUID()),
+        records.map((r) => r.decisionId),
+        records.map((r) => r.criterion),
+        records.map((r) => r.score),
+        records.map((r) => r.evidenceHe),
+        records.map((r) => r.sourceTurn),
+      ]
+    );
   }
 
   async listEvidence(sessionId: string) {

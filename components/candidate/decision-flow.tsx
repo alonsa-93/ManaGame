@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { Scenario } from "@/lib/scenario-schema";
+import type { ScenarioPublicView } from "@/lib/engine/turn-view";
 import type { SessionRecord } from "@/lib/store/types";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,63 +16,64 @@ import {
 } from "@/app/play/[scenarioId]/s/[sessionId]/actions";
 import { CheckCircle2, Info } from "lucide-react";
 
-type View = "composer" | "confirming" | "processing";
+type Step = "composer" | "confirming" | "processing";
 
 export function DecisionFlow({
   scenarioId,
-  scenario,
+  view: initialView,
   domainNameHe,
   initialSession,
   initialEventHe,
 }: {
   scenarioId: string;
-  scenario: Scenario;
+  view: ScenarioPublicView;
   domainNameHe?: string;
   initialSession: SessionRecord;
   initialEventHe?: string;
 }) {
   const router = useRouter();
   const [session, setSession] = useState(initialSession);
+  const [scenarioView, setScenarioView] = useState(initialView);
   const [eventHe, setEventHe] = useState(initialEventHe);
   const [rawText, setRawText] = useState("");
-  const [view, setView] = useState<View>("composer");
+  const [step, setStep] = useState<Step>("composer");
   const [confirmation, setConfirmation] = useState<{ labels: string[]; needsReview: boolean } | null>(null);
+  const [preview, setPreview] = useState<Awaited<ReturnType<typeof previewDecisionAction>> | null>(null);
   const [slow, setSlow] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [reviewNotice, setReviewNotice] = useState(false);
   const [previousKpiState, setPreviousKpiState] = useState(session.kpiState);
 
-  const turn = scenario.turns.find((t) => t.index === session.currentTurn);
-  const totalTurns = scenario.turns.length;
+  const turn = scenarioView.turn;
+  const totalTurns = scenarioView.totalTurns;
 
   useEffect(() => {
-    if (view !== "processing") return;
+    if (step !== "processing") return;
     const timer = setTimeout(() => setSlow(true), 4000);
     return () => clearTimeout(timer);
-  }, [view]);
-
-  if (!turn) return null;
+  }, [step]);
 
   async function handleSubmitDecision() {
     setError(null);
-    setView("processing");
+    setStep("processing");
     setSlow(false);
     try {
       const result = await previewDecisionAction(scenarioId, session.id, rawText);
+      setPreview(result);
       setConfirmation({ labels: result.matchedLabels, needsReview: result.needsHumanReview });
-      setView("confirming");
+      setStep("confirming");
     } catch {
       setError("משהו השתבש. ההחלטה שלך נשמרה ואפשר להמשיך.");
-      setView("composer");
+      setStep("composer");
     }
   }
 
   async function handleConfirm() {
     setError(null);
-    setView("processing");
+    setStep("processing");
     setSlow(false);
     try {
-      const result = await commitDecisionAction(scenarioId, session.id, rawText);
+      const result = await commitDecisionAction(scenarioId, session.id, rawText, session.currentTurn, preview ?? undefined);
       setPreviousKpiState(session.kpiState);
       setSession(result.session);
       setReviewNotice(result.needsHumanReview);
@@ -82,19 +83,22 @@ export function DecisionFlow({
         return;
       }
 
+      if (result.nextView) setScenarioView(result.nextView);
       setEventHe(result.nextEventHe);
       setRawText("");
       setConfirmation(null);
-      setView("composer");
+      setPreview(null);
+      setStep("composer");
     } catch {
       setError("משהו השתבש. ההחלטה שלך נשמרה ואפשר להמשיך.");
-      setView("confirming");
+      setStep("confirming");
     }
   }
 
   function handleReject() {
     setConfirmation(null);
-    setView("composer");
+    setPreview(null);
+    setStep("composer");
   }
 
   const charCount = rawText.trim().length;
@@ -114,11 +118,11 @@ export function DecisionFlow({
       </div>
 
       <Card className="p-6 sm:p-8 mb-6">
-        <h1 className="text-xl sm:text-2xl font-semibold text-mg-text mb-4">{scenario.title_he}</h1>
-        <KpiStrip kpis={scenario.kpis} state={session.kpiState} previous={previousKpiState} />
+        <h1 className="text-xl sm:text-2xl font-semibold text-mg-text mb-4">{scenarioView.title_he}</h1>
+        <KpiStrip kpis={scenarioView.kpis} state={session.kpiState} previous={previousKpiState} />
       </Card>
 
-      {eventHe && view === "composer" && (
+      {eventHe && step === "composer" && (
         <Card className="p-5 sm:p-6 mb-6 bg-mg-sand border-[#e8d4ad]">
           {eventHe.split("\n\n").map((line, i) => (
             <p key={i} className={i === 0 ? "font-semibold text-mg-text mb-1.5" : "text-mg-text-secondary leading-relaxed"}>
@@ -128,14 +132,14 @@ export function DecisionFlow({
         </Card>
       )}
 
-      {reviewNotice && view === "composer" && (
+      {reviewNotice && step === "composer" && (
         <div className="mb-6 flex items-center gap-2 text-xs text-mg-text-secondary">
           <Info className="h-3.5 w-3.5" />
           <span>ההחלטה הקודמת שלך סומנה לבדיקה אנושית — זה לא אומר שהיא שגויה, ואפשר להמשיך.</span>
         </div>
       )}
 
-      {view === "composer" && (
+      {step === "composer" && (
         <Card className="p-6 sm:p-8">
           <p className="text-mg-text-secondary leading-relaxed mb-5 whitespace-pre-line">{turn.situation_he}</p>
 
@@ -191,7 +195,7 @@ export function DecisionFlow({
         </Card>
       )}
 
-      {view === "processing" && (
+      {step === "processing" && (
         <Card className="p-10 flex flex-col items-center text-center">
           <span className="h-8 w-8 animate-spin rounded-full border-2 border-mg-teal border-t-transparent mb-4" aria-hidden />
           <p className="text-mg-text font-medium">מעבדים את ההחלטה...</p>
@@ -204,7 +208,7 @@ export function DecisionFlow({
         </Card>
       )}
 
-      {view === "confirming" && confirmation && (
+      {step === "confirming" && confirmation && (
         <Card className="p-6 sm:p-8">
           <p className="font-medium text-mg-text mb-3">זה מה שהמערכת הבינה מההחלטה שלכם:</p>
 

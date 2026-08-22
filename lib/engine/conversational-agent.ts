@@ -66,9 +66,15 @@ export function coerceAgentToolInput(raw: unknown, turn: ScenarioTurn, mustScore
     .filter((s) => typeof s.criterion === "string" && VALID_CRITERIA.has(s.criterion))
     .map((s) => ({
       criterion: s.criterion as CriterionKey,
-      score: Math.max(0, Math.min(5, Number(s.score) || 0)),
+      // A malformed/missing score must be dropped, not silently coerced to 0
+      // — 0 is a legitimate "evidenced as very poor" score and must remain
+      // distinguishable from "not evidenced at all" (see aggregator.ts,
+      // which treats any present entry as "measured").
+      rawScore: Number(s.score),
       evidence_he: typeof s.evidence_he === "string" ? s.evidence_he : "",
-    }));
+    }))
+    .filter((s): s is { criterion: CriterionKey; rawScore: number; evidence_he: string } => Number.isFinite(s.rawScore))
+    .map((s) => ({ criterion: s.criterion, score: Math.max(0, Math.min(5, s.rawScore)), evidence_he: s.evidence_he }));
 
   return { action, messageHe, adversarial, matchedOptionKeys, criteriaScores };
 }
@@ -166,6 +172,14 @@ export interface AgentTurnInput {
   turn: ScenarioTurn;
   history: AgentConversationMessage[];
   rawText: string;
+  /**
+   * Force immediate scoring regardless of history length — never offer a
+   * follow-up. Used when conversation history isn't reliably readable (no
+   * database connected, see lib/session-cache.ts): without a real DB, a
+   * cold serverless instance always sees history=[], which would otherwise
+   * make the "at most one follow-up" limit resettable indefinitely.
+   */
+  forceScore?: boolean;
 }
 
 /**
@@ -188,9 +202,10 @@ export async function pingAgent(): Promise<{ ok: boolean; detail: string }> {
   }
 }
 
-export async function agentTurn({ scenario, turn, history, rawText }: AgentTurnInput): Promise<AgentTurnResult> {
+export async function agentTurn({ scenario, turn, history, rawText, forceScore }: AgentTurnInput): Promise<AgentTurnResult> {
   const localScan = scanForInjection(rawText);
-  const mustScore = history.filter((m) => m.role === "candidate").length >= 1;
+  const candidateHistory = history.filter((m) => m.role === "candidate");
+  const mustScore = Boolean(forceScore) || candidateHistory.length >= 1;
 
   const anthropic = getClient();
   if (!anthropic) return heuristicFallback(rawText, turn);
@@ -208,7 +223,18 @@ export async function agentTurn({ scenario, turn, history, rawText }: AgentTurnI
     const toolUse = response.content.find((b) => b.type === "tool_use");
     if (!toolUse || toolUse.type !== "tool_use") return heuristicFallback(rawText, turn);
 
-    const result = coerceAgentToolInput(toolUse.input, turn, mustScore);
+    let result = coerceAgentToolInput(toolUse.input, turn, mustScore);
+
+    // Safety net: mustScore forced a "score" action, but the model's raw
+    // output carried no real judgment (it was still trying to ask a
+    // follow-up) — advancing with zero evidence and the dangling question
+    // as the "closing" message would be silently wrong. Recover
+    // deterministically over everything the candidate has said this turn.
+    if (mustScore && result.action === "score" && result.criteriaScores.length === 0 && result.matchedOptionKeys.length === 0) {
+      const combinedText = [...candidateHistory.map((m) => m.textHe), rawText].join("\n");
+      result = heuristicFallback(combinedText, turn);
+    }
+
     if (localScan.flagged && result.action === "score") {
       return { ...result, adversarial: true };
     }

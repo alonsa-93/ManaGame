@@ -28,6 +28,7 @@ function makeSession(currentTurn: number): SessionRecord {
     currentTurn,
     kpiState: { budget: 50 },
     kpiHistory: [{ turn: 0, state: { budget: 50 } }],
+    turnEvidence: [],
     createdAt: new Date(0).toISOString(),
   };
 }

@@ -17,12 +17,17 @@ create table if not exists sessions (
   current_turn int not null default 1,
   kpi_state jsonb not null,
   kpi_history jsonb not null default '[]',
+  turn_evidence jsonb not null default '[]',
   consent_at timestamptz,
   completed_at timestamptz,
   created_at timestamptz not null default now()
 );
 create index if not exists sessions_scenario_idx on sessions(scenario_id);
 create index if not exists sessions_created_idx on sessions(created_at desc);
+-- Idempotent for a database that already ran this schema before turn_evidence
+-- existed — `create table if not exists` above is a no-op on an existing
+-- table, so the column needs its own guarded add.
+alter table sessions add column if not exists turn_evidence jsonb not null default '[]';
 
 create table if not exists decisions (
   id text primary key,

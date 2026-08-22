@@ -5,6 +5,10 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AgentPingButton } from "@/components/admin/agent-ping-button";
 
+// Otherwise this page (env-var/DB status) would be statically prerendered
+// once at build time and never reflect the actual runtime environment.
+export const dynamic = "force-dynamic";
+
 export default function AdminSystemPage() {
   const db = hasDatabase();
   return (

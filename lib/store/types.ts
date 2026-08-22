@@ -1,6 +1,22 @@
 import type { KpiState } from "@/lib/engine/state";
+import type { CriterionKey } from "@/lib/scenario-schema";
 
 export type SessionStatus = "not_started" | "in_progress" | "completed";
+
+/**
+ * Compact per-criterion evidence accumulated on the session itself (not
+ * just in the decisions/decision_evidence tables), so scoring survives a
+ * cold serverless instance when no database is connected — see
+ * lib/session-cache.ts and finalizeReport() in lib/engine/session.ts.
+ * Deliberately excludes the evidence quote text to keep the session (and
+ * therefore the resiliency cookie) small; quotes for the assessor UI still
+ * come from decision_evidence via the store.
+ */
+export interface TurnEvidenceEntry {
+  criterion: CriterionKey;
+  score: number;
+  sourceTurn: number;
+}
 
 export interface SessionRecord {
   id: string;
@@ -12,6 +28,7 @@ export interface SessionRecord {
   currentTurn: number;
   kpiState: KpiState;
   kpiHistory: { turn: number; state: KpiState }[];
+  turnEvidence: TurnEvidenceEntry[];
   consentAt?: string;
   completedAt?: string;
   createdAt: string;
