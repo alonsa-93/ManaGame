@@ -9,6 +9,7 @@ import { Progress } from "@/components/ui/progress";
 import { Alert } from "@/components/ui/alert";
 import { PrintReportButton } from "@/components/assessor/print-report-button";
 import { ConversationTranscript } from "@/components/assessor/conversation-transcript";
+import { CohortBenchmark } from "@/components/assessor/cohort-benchmark";
 
 export default async function ReportPage({ params }: { params: Promise<{ sessionId: string }> }) {
   const { sessionId } = await params;
@@ -19,12 +20,24 @@ export default async function ReportPage({ params }: { params: Promise<{ session
   if (!scenario) notFound();
   const domain = getDomain(scenario.domainKey);
 
-  const [report, decisions, evidence, conversation] = await Promise.all([
+  const [report, decisions, evidence, conversation, allSessions] = await Promise.all([
     store.getReport(sessionId),
     store.listDecisions(sessionId),
     store.listEvidence(sessionId),
     store.listConversationMessages(sessionId),
+    store.listSessions(),
   ]);
+
+  // Cohort for the benchmark below: every *other* completed run of this same
+  // scenario. Excluding this session keeps the candidate from being compared
+  // against themselves, which would drag the percentile toward the middle.
+  const peers = allSessions.filter(
+    (s) => s.id !== sessionId && s.scenarioId === session.scenarioId && s.status === "completed"
+  );
+  const peerReports = await Promise.all(peers.map((s) => store.getReport(s.id)));
+  const cohort = peerReports
+    .map((r) => r?.processScore)
+    .filter((v): v is number => typeof v === "number");
 
   const criteriaScores = (report?.criteriaScores as
     | { criterion: string; label_he: string; measured: boolean; score100: number | null }[]
@@ -178,6 +191,12 @@ export default async function ReportPage({ params }: { params: Promise<{ session
           )}
         </>
       )}
+
+      <CohortBenchmark
+        processScore={report?.processScore ?? null}
+        cohort={cohort}
+        scenarioTitle={scenario.title_he}
+      />
 
       <ConversationTranscript messages={conversation} />
 

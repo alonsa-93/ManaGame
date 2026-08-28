@@ -184,6 +184,24 @@ fill-time (`lib/spam-guard.ts`) — plus a per-IP rate limit (`lib/rate-limit.ts
 comments on both: the rate limiter's counters live in the process, so on Vercel it is enforced per
 warm instance and is a speed bump rather than a guarantee until a shared store backs it.
 
+### Integration API (optional, for an ATS)
+
+Set `ATS_API_TOKEN` to enable a read-only JSON API at `/api/v1/sessions`. It is
+**off**, not merely unauthenticated, when no token is set — a deployment with a blank env
+var cannot accidentally expose candidate data. It deliberately never returns the candidate's
+free text, the agent transcript, their email, or the scenario's option keys; an integration
+that copies those into a third-party system moves that exposure somewhere this codebase
+can't see. `docs/integration-api.md` has the full contract, including the two things a
+consumer must handle: a null `processScore` means "not enough was measured", not a low
+score, and `needsHumanReview` is a request for a person to look, not a negative signal.
+
+### Benchmarks
+
+`lib/engine/benchmarks.ts` places a run among other completed runs of the same scenario.
+It returns `null` below ten runs and the report then renders nothing: a percentile drawn
+from four runs is a lie told with a real number. Readings are banded ("in the top quarter")
+rather than exact, because a cohort of a few dozen doesn't support more precision than that.
+
 ## Scope notes / what's intentionally lighter than the full spec
 
 - **Admin** is a content *browser* (scenario/turn/delta viewer, event list, fixed rubric view,
