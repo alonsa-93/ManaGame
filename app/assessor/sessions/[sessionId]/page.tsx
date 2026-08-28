@@ -7,6 +7,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Alert } from "@/components/ui/alert";
+import { PrintReportButton } from "@/components/assessor/print-report-button";
+import { ConversationTranscript } from "@/components/assessor/conversation-transcript";
 
 export default async function ReportPage({ params }: { params: Promise<{ sessionId: string }> }) {
   const { sessionId } = await params;
@@ -17,10 +19,11 @@ export default async function ReportPage({ params }: { params: Promise<{ session
   if (!scenario) notFound();
   const domain = getDomain(scenario.domainKey);
 
-  const [report, decisions, evidence] = await Promise.all([
+  const [report, decisions, evidence, conversation] = await Promise.all([
     store.getReport(sessionId),
     store.listDecisions(sessionId),
     store.listEvidence(sessionId),
+    store.listConversationMessages(sessionId),
   ]);
 
   const criteriaScores = (report?.criteriaScores as
@@ -38,8 +41,13 @@ export default async function ReportPage({ params }: { params: Promise<{ session
   return (
     <div className="max-w-5xl">
       <div className="mb-8">
-        <p className="text-sm text-mg-text-secondary mb-1">ManaGame · דוח סימולציית קבלת החלטות</p>
-        <h1 className="text-2xl font-semibold text-mg-text">{session.candidateName ?? "מועמד ללא שם"}</h1>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-sm text-mg-text-secondary mb-1">ManaGame · דוח סימולציית קבלת החלטות</p>
+            <h1 className="text-2xl font-semibold text-mg-text">{session.candidateName ?? "מועמד ללא שם"}</h1>
+          </div>
+          <PrintReportButton />
+        </div>
         <div className="mt-2 flex flex-wrap gap-2 text-sm text-mg-text-secondary">
           <span>תפקיד: {ROLE_LEVEL_LABEL_HE[scenario.roleLevel]}</span>
           <span>·</span>
@@ -170,6 +178,8 @@ export default async function ReportPage({ params }: { params: Promise<{ session
           )}
         </>
       )}
+
+      <ConversationTranscript messages={conversation} />
 
       <CardContent className="mt-2">
         <Badge variant="illustrative">Session ID: {session.id.slice(0, 8)}</Badge>

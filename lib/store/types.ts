@@ -107,6 +107,13 @@ export interface Store {
 
   addDecision(record: Omit<DecisionRecord, "createdAt">): Promise<DecisionRecord>;
   listDecisions(sessionId: string): Promise<DecisionRecord[]>;
+  /**
+   * sessionId -> number of decisions flagged for human review, for every
+   * session that has at least one. One aggregate rather than a listDecisions
+   * call per row: the session list would otherwise issue an N+1 query just to
+   * render one column.
+   */
+  reviewFlagCounts(): Promise<Record<string, number>>;
 
   addEvidence(records: Omit<EvidenceRecord, "id">[]): Promise<void>;
   listEvidence(sessionId: string): Promise<EvidenceRecord[]>;

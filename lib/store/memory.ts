@@ -68,6 +68,14 @@ class MemoryStore implements Store {
       .sort((a, b) => a.turnIndex - b.turnIndex);
   }
 
+  async reviewFlagCounts() {
+    const counts: Record<string, number> = {};
+    for (const d of this.decisions.values()) {
+      if (d.needsHumanReview) counts[d.sessionId] = (counts[d.sessionId] ?? 0) + 1;
+    }
+    return counts;
+  }
+
   async addEvidence(records: Omit<EvidenceRecord, "id">[]) {
     for (const r of records) {
       this.evidence.push({ ...r, id: crypto.randomUUID() });

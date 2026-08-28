@@ -130,6 +130,13 @@ export class PgStore implements Store {
     return rows.map(rowToDecision);
   }
 
+  async reviewFlagCounts(): Promise<Record<string, number>> {
+    const { rows } = await this.pool().query(
+      `select session_id, count(*)::int as n from decisions where needs_human_review group by session_id`
+    );
+    return Object.fromEntries(rows.map((r) => [r.session_id, r.n]));
+  }
+
   async addEvidence(records: Omit<EvidenceRecord, "id">[]) {
     if (records.length === 0) return;
     // Single multi-row insert via unnest() instead of one round trip per

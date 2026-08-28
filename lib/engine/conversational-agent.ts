@@ -3,6 +3,7 @@ import { CRITERIA, ROLE_LEVEL_LABEL_HE, type CriterionKey, type Scenario, type S
 import { heuristicParse } from "@/lib/engine/parser";
 import { buildEvidence } from "@/lib/engine/judge";
 import { scanForInjection } from "@/lib/engine/security";
+import { recordAiCall } from "@/lib/ai-usage";
 
 /**
  * The conversational agent: unlike llm-parser.ts ("AI interprets, the engine
@@ -191,10 +192,16 @@ export async function pingAgent(): Promise<{ ok: boolean; detail: string }> {
   const anthropic = getClient();
   if (!anthropic) return { ok: false, detail: "לא הוגדר ANTHROPIC_API_KEY." };
   try {
-    await anthropic.messages.create({
+    const response = await anthropic.messages.create({
       model: "claude-sonnet-5",
       max_tokens: 8,
       messages: [{ role: "user", content: "ping" }],
+    });
+    recordAiCall({
+      model: "claude-sonnet-5",
+      purpose: "connection_test",
+      inputTokens: response.usage?.input_tokens ?? 0,
+      outputTokens: response.usage?.output_tokens ?? 0,
     });
     return { ok: true, detail: "החיבור למודל תקין." };
   } catch (err) {
@@ -218,6 +225,15 @@ export async function agentTurn({ scenario, turn, history, rawText, forceScore }
       tools: [AGENT_TURN_TOOL],
       tool_choice: { type: "tool", name: "agent_turn" },
       messages: [{ role: "user", content: buildUserMessage(turn, history, rawText) }],
+    });
+
+    // Recorded before any early return below, so a call that produced an
+    // unusable response still shows up in the cost figures — it was billed.
+    recordAiCall({
+      model: "claude-sonnet-5",
+      purpose: "conversational_turn",
+      inputTokens: response.usage?.input_tokens ?? 0,
+      outputTokens: response.usage?.output_tokens ?? 0,
     });
 
     const toolUse = response.content.find((b) => b.type === "tool_use");

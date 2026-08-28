@@ -119,3 +119,54 @@ body {
   outline-offset: 2px;
   border-radius: 4px;
 }
+
+/* ============================================================
+   Print — the assessor report's PDF export path.
+
+   There is no separate PDF renderer: "ייצוא ל-PDF" calls window.print() on
+   the real report, so the exported document and the on-screen one cannot
+   drift apart. What follows is everything needed to make that page hold up
+   on paper.
+   ============================================================ */
+@media print {
+  /* Interface chrome that means nothing on paper: the access bar, the
+     internal nav, and the print button itself. */
+  header,
+  nav,
+  .print\:hidden {
+    display: none !important;
+  }
+
+  body {
+    background: #fff;
+  }
+
+  /* Backgrounds carry meaning here — the mint/coral blocks separate the
+     candidate's words from the agent's, and mark flagged decisions. */
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Never split a criterion's evidence, a flagged decision or one side of
+     the transcript across a page boundary. */
+  section,
+  li,
+  table {
+    break-inside: avoid;
+  }
+
+  h1,
+  h2 {
+    break-after: avoid;
+  }
+
+  a[href] {
+    text-decoration: none;
+    color: inherit;
+  }
+
+  @page {
+    margin: 16mm;
+  }
+}

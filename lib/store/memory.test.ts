@@ -33,3 +33,21 @@ describe("memoryStore conversation messages", () => {
     expect(forA.map((m) => m.textHe)).toEqual(["A"]);
   });
 });
+
+describe("reviewFlagCounts", () => {
+  it("counts only flagged decisions, grouped by session", async () => {
+    const store = new (memoryStore.constructor as new () => typeof memoryStore)();
+    await store.addDecision({ id: "d1", sessionId: "s1", turnIndex: 1, rawText: "a", matchedOptionKeys: [], confidence: null, needsHumanReview: true });
+    await store.addDecision({ id: "d2", sessionId: "s1", turnIndex: 2, rawText: "b", matchedOptionKeys: [], confidence: null, needsHumanReview: true });
+    await store.addDecision({ id: "d3", sessionId: "s1", turnIndex: 3, rawText: "c", matchedOptionKeys: [], confidence: null, needsHumanReview: false });
+    await store.addDecision({ id: "d4", sessionId: "s2", turnIndex: 1, rawText: "d", matchedOptionKeys: [], confidence: null, needsHumanReview: true });
+
+    expect(await store.reviewFlagCounts()).toEqual({ s1: 2, s2: 1 });
+  });
+
+  it("returns an empty map when nothing is flagged", async () => {
+    const store = new (memoryStore.constructor as new () => typeof memoryStore)();
+    await store.addDecision({ id: "d1", sessionId: "s1", turnIndex: 1, rawText: "a", matchedOptionKeys: [], confidence: null, needsHumanReview: false });
+    expect(await store.reviewFlagCounts()).toEqual({});
+  });
+});

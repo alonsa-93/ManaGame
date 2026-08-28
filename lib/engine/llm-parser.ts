@@ -2,6 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import type { ScenarioTurn } from "@/lib/scenario-schema";
 import { heuristicParse, type ParseResult } from "@/lib/engine/parser";
 import { scanForInjection } from "@/lib/engine/security";
+import { recordAiCall } from "@/lib/ai-usage";
 
 /**
  * AI interprets. The engine computes. (Master Spec §53, §57)
@@ -70,6 +71,13 @@ export async function llmAssistedParse(rawText: string, turn: ScenarioTurn): Pro
             .join("\n"),
         },
       ],
+    });
+
+    recordAiCall({
+      model: "claude-sonnet-5",
+      purpose: "decision_parse",
+      inputTokens: response.usage?.input_tokens ?? 0,
+      outputTokens: response.usage?.output_tokens ?? 0,
     });
 
     const toolUse = response.content.find((b) => b.type === "tool_use");
