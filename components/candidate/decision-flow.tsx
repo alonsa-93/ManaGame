@@ -63,7 +63,7 @@ export function DecisionFlow({
       setConfirmation({ labels: result.matchedLabels, needsReview: result.needsHumanReview });
       setStep("confirming");
     } catch {
-      setError("משהו השתבש. ההחלטה שלך נשמרה ואפשר להמשיך.");
+      setError("משהו השתבש ולא הצלחנו לקלוט את ההחלטה. הטקסט שכתבתם עדיין כאן — אפשר לנסות שוב בעוד רגע.");
       setStep("composer");
     }
   }
@@ -90,7 +90,7 @@ export function DecisionFlow({
       setPreview(null);
       setStep("composer");
     } catch {
-      setError("משהו השתבש. ההחלטה שלך נשמרה ואפשר להמשיך.");
+      setError("משהו השתבש ולא הצלחנו לקלוט את ההחלטה. הטקסט שכתבתם עדיין כאן — אפשר לנסות שוב בעוד רגע.");
       setStep("confirming");
     }
   }

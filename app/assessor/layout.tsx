@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Logo } from "@/components/brand/logo";
+import { AccessBar } from "@/components/admin/access-bar";
 
 // See the note in app/admin/layout.tsx — noindex complements robots.txt.
 export const metadata: Metadata = { robots: { index: false, follow: false } };
@@ -17,6 +18,7 @@ const NAV = [
 export default function AssessorLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-mg-background">
+      <AccessBar />
       <header className="border-b border-mg-border bg-white">
         <div className="mx-auto max-w-7xl px-5 sm:px-8 h-16 flex items-center justify-between gap-6">
           <Logo height={22} href="/assessor/sessions" />

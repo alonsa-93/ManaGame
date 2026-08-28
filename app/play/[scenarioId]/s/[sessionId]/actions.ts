@@ -1,11 +1,25 @@
 "use server";
 
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getScenario } from "@/content/scenarios";
 import { getStore } from "@/lib/store";
 import { previewDecision, submitDecision, submitConversationalTurn, type ConfirmedPreview } from "@/lib/engine/session";
 import { toScenarioPublicView, type ScenarioPublicView } from "@/lib/engine/turn-view";
 import { persistSessionCookie, resolveSession } from "@/lib/session-cache";
+import { assertAiCallAllowed } from "@/lib/ai-rate-limit";
+
+/**
+ * Every action below can reach the Anthropic API (parsing, or the full
+ * conversational agent). Nothing here is authenticated — a session id is
+ * enough — so the spend ceiling is the only thing standing between a retry
+ * loop and an unbounded bill. See lib/ai-rate-limit.ts.
+ */
+async function guardAiSpend(sessionId: string) {
+  const h = await headers();
+  const ip = h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? h.get("x-real-ip") ?? "unknown";
+  assertAiCallAllowed({ sessionId, ip });
+}
 
 /**
  * The client only ever holds a pruned ScenarioPublicView (see
@@ -38,6 +52,7 @@ export async function previewDecisionAction(scenarioId: string, sessionId: strin
   if (!scenario) throw new Error("תרחיש לא נמצא");
   const session = await resolveSession(sessionId);
   if (!session) throw new Error("סשן לא נמצא");
+  await guardAiSpend(sessionId);
   return previewDecision(scenario, session, rawText);
 }
 
@@ -63,6 +78,7 @@ export async function commitDecisionAction(
   if (!scenario) throw new Error("תרחיש לא נמצא");
   const session = await resolveSession(sessionId);
   if (!session) throw new Error("סשן לא נמצא");
+  await guardAiSpend(sessionId);
   const result = await submitDecision(scenario, session, rawText, expectedTurn, confirmedPreview);
   await persistSessionCookie(result.session);
   return { ...result, nextView: nextViewFor(scenario, result.isFinalTurn, result.session.currentTurn) };
@@ -74,6 +90,7 @@ export async function submitConversationalTurnAction(scenarioId: string, session
   if (!scenario) throw new Error("תרחיש לא נמצא");
   const session = await resolveSession(sessionId);
   if (!session) throw new Error("סשן לא נמצא");
+  await guardAiSpend(sessionId);
   const result = await submitConversationalTurn(scenario, session, rawText, expectedTurn);
   await persistSessionCookie(result.session);
   const nextView = result.kind === "advance" ? nextViewFor(scenario, result.isFinalTurn ?? false, result.session.currentTurn) : null;

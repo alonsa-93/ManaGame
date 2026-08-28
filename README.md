@@ -101,6 +101,26 @@ the whole candidate → assessor loop, and all 20 scenarios work immediately:
   setting was somehow unset, which built fine but served 404s for every route at the edge —
   declaring it in-repo fixed that regardless of dashboard state.
 
+### Protecting the internal area
+
+`/admin` and `/assessor` hold every candidate's answers, evidence and scores — the most sensitive
+thing this system stores. Set `ADMIN_PASSWORD` and `proxy.ts` gates both behind a passphrase,
+issuing a signed 12-hour session cookie (`lib/auth/admin-session.ts`; Web Crypto rather than
+`node:crypto` because proxy runs on the Edge runtime).
+
+It is a shared passphrase, not user accounts, and that is a deliberate limit rather than an
+oversight: with one operator today, real per-assessor identity — with roles and an access audit
+trail — would be a fake if built now. What the passphrase does give is a genuine boundary: signed,
+expiring, and invalidated the moment the passphrase changes.
+
+**When `ADMIN_PASSWORD` is unset the gate is off** so local development and the existing deployment
+keep working unchanged — and every internal page then carries a standing, non-dismissible warning
+saying so. Failing open silently would be the worse bug.
+
+`docs/personal-data-map.md` is the engineering inventory behind this: what personal data exists,
+where it goes (including the two outbound paths — Anthropic and Make), who can reach it, and the
+gaps that remain before real candidates use the system.
+
 ### Connecting a database (optional, for durable/cross-instance storage)
 
 The in-process store is real and fully functional, but it lives in server memory — fine for
