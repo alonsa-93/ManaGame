@@ -6,7 +6,9 @@
  * this module only knows the webhook URL and the event shape it sends.
  */
 
-export type MakeEvent = "session_completed" | "needs_human_review";
+import { deploymentUrl } from "@/lib/site-url";
+
+export type MakeEvent = "session_completed" | "needs_human_review" | "contact_lead";
 
 export interface MakeEventPayload {
   event: MakeEvent;
@@ -18,19 +20,24 @@ export interface MakeEventPayload {
   outcomeScore?: number;
   turnIndex?: number;
   reviewReason?: string;
+  /** contact_lead only — the marketing enquiry itself. */
+  lead?: {
+    name: string;
+    email: string;
+    role?: string;
+    organization?: string;
+    orgSize?: string;
+    whatToTest?: string;
+  };
 }
 
 /**
- * Resolves the base URL used to build links back into ManaGame (e.g. the
- * assessor report link in a notification email). Precedence: an explicit
- * override, then Vercel's per-deployment URL, then the known canonical
- * production domain — never throws, always returns something usable.
+ * Base URL for links back into ManaGame in outbound notifications. This is
+ * deliberately the *deployment* URL, not the canonical one: a report link in a
+ * notification should open the deployment that produced the event. See
+ * lib/site-url.ts for why the two are kept apart.
  */
-export function siteUrl(): string {
-  if (process.env.NEXT_PUBLIC_SITE_URL) return process.env.NEXT_PUBLIC_SITE_URL;
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-  return "https://mana-game-amber.vercel.app";
-}
+export const siteUrl = deploymentUrl;
 
 /**
  * Best-effort, fire-and-forget notification — a down or unconfigured Make

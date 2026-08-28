@@ -1,8 +1,9 @@
 import { Alert } from "@/components/ui/alert";
 
 export const metadata = {
-  title: "מדיניות פרטיות — ManaGame",
+  title: "מדיניות פרטיות",
   description: "כיצד ManaGame אוספת, שומרת ומשתמשת במידע.",
+  alternates: { canonical: "/legal/privacy" },
 };
 
 export default function PrivacyPage() {

@@ -222,6 +222,20 @@ export class PgStore implements Store {
     );
   }
 
+  async listContactSubmissions(): Promise<ContactSubmission[]> {
+    const { rows } = await this.pool().query(`select * from contact_submissions order by created_at desc`);
+    return rows.map((r) => ({
+      id: r.id,
+      name: r.name,
+      role: r.role ?? undefined,
+      organization: r.organization ?? undefined,
+      email: r.email,
+      whatToTest: r.what_to_test ?? undefined,
+      orgSize: r.org_size ?? undefined,
+      createdAt: new Date(r.created_at).toISOString(),
+    }));
+  }
+
   async addConversationMessage(record: Omit<ConversationMessageRecord, "id" | "createdAt">) {
     await this.pool().query(
       `insert into turn_conversations (id, session_id, turn_index, role, text_he) values ($1,$2,$3,$4,$5)`,

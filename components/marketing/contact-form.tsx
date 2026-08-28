@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert } from "@/components/ui/alert";
@@ -21,6 +21,13 @@ export function ContactForm() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+  // Stamped on the visitor's first interaction with the form, and used
+  // server-side to reject instant submissions (see lib/spam-guard.ts). Set from
+  // an event handler rather than during render or in an effect: `Date.now()` is
+  // impure, so calling it while rendering is exactly what React's purity rule
+  // forbids. Measuring from first touch is also the better signal — it's how
+  // long the person actually spent filling the form in.
+  const startedAt = useRef<number | null>(null);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -28,6 +35,7 @@ export function ContactForm() {
     setError(null);
     try {
       const formData = new FormData(e.currentTarget);
+      formData.set("interaction_at", startedAt.current === null ? "" : String(startedAt.current));
       const result = await submitContact(formData);
       if (result.ok) {
         setDone(true);
@@ -50,8 +58,26 @@ export function ContactForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} noValidate className="space-y-5">
+    <form
+      onSubmit={onSubmit}
+      onFocusCapture={() => {
+        startedAt.current ??= Date.now();
+      }}
+      noValidate
+      className="space-y-5"
+    >
       {error && <Alert variant="error">{error}</Alert>}
+
+      {/*
+        Spam guards. The decoy field is positioned off-screen rather than
+        display:none — some bots skip hidden inputs, but few compute layout.
+        It is aria-hidden and untabbable, so no keyboard or screen-reader user
+        can reach it by accident and get their enquiry silently dropped.
+      */}
+      <div aria-hidden className="absolute w-px h-px -m-px overflow-hidden opacity-0 pointer-events-none">
+        <label htmlFor="company_website">אל תמלאו שדה זה</label>
+        <input id="company_website" name="company_website" type="text" tabIndex={-1} autoComplete="off" defaultValue="" />
+      </div>
 
       <div className="grid gap-5 sm:grid-cols-2">
         <div>

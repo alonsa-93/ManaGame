@@ -10,16 +10,21 @@ import UseCases from "@/components/marketing/use-cases";
 import SecurityTeaser from "@/components/marketing/security-teaser";
 import PhilosophyTrust from "@/components/marketing/philosophy-trust";
 import FaqCta from "@/components/marketing/faq-cta";
+import { StructuredData } from "@/components/marketing/structured-data";
 
 export const metadata: Metadata = {
-  title: "ManaGame — החלטות שמנהלות מציאות",
+  // `absolute` opts out of the root layout's "%s — ManaGame" template, which
+  // would otherwise append the brand to a title that already opens with it.
+  title: { absolute: "ManaGame — החלטות שמנהלות מציאות" },
   description:
     "ManaGame היא פלטפורמת סימולציה דינמית לקבלת החלטות. מועמדים ומנהלים מתמודדים עם מצבים עסקיים משתנים, והמערכת מתעדת החלטות, ראיות ותוצאות.",
+  alternates: { canonical: "/" },
 };
 
 export default function HomePage() {
   return (
     <>
+      <StructuredData />
       <Hero />
       <Problem />
       <Shift />

@@ -1,8 +1,9 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "נגישות — ManaGame",
+  title: "נגישות",
   description: "מחויבות הנגישות של ManaGame.",
+  alternates: { canonical: "/legal/accessibility" },
 };
 
 export default function AccessibilityPage() {

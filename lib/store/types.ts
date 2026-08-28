@@ -118,6 +118,8 @@ export interface Store {
   getReport(sessionId: string): Promise<ReportRecord | null>;
 
   addContactSubmission(record: Omit<ContactSubmission, "createdAt">): Promise<void>;
+  /** Newest first. Read by /admin/leads — without a reader, leads were write-only. */
+  listContactSubmissions(): Promise<ContactSubmission[]>;
 
   /** Chat transcript for the conversational-agent turn flow (lib/engine/conversational-agent.ts). */
   addConversationMessage(record: Omit<ConversationMessageRecord, "id" | "createdAt">): Promise<void>;

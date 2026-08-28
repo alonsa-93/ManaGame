@@ -1,5 +1,9 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Logo } from "@/components/brand/logo";
+
+// See the note in app/admin/layout.tsx — noindex complements robots.txt.
+export const metadata: Metadata = { robots: { index: false, follow: false } };
 
 const NAV = [
   { href: "/assessor/sessions", label: "סשנים" },

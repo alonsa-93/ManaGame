@@ -1,8 +1,9 @@
 import { ContactForm } from "@/components/marketing/contact-form";
 
 export const metadata = {
-  title: "צרו קשר — ManaGame",
+  title: "צרו קשר",
   description: "בואו נשים את זה על שולחן ההחלטות.",
+  alternates: { canonical: "/contact" },
 };
 
 export default function ContactPage() {

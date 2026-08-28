@@ -5,8 +5,9 @@ import { Card } from "@/components/ui/card";
 import { ChevronLeft } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "התנסות בסימולציית קבלת החלטות — ManaGame",
+  title: "התנסות בסימולציית קבלת החלטות",
   description: "יש לכם שלוש דקות? נכניס אתכם למצב שבו צריך לקבל החלטה, ואז נראה מה קורה כשהמציאות משתנה.",
+  alternates: { canonical: "/experience" },
 };
 
 const STEPS = [

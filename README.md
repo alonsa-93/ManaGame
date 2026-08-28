@@ -39,6 +39,23 @@ fine — build succeeds, routes correctly (see the `vercel.json` fix below), and
   supply chain, finance, product/R&D, sales, healthcare/medical devices, semiconductors,
   aviation & defense, retail, people/HR, cybersecurity. `content/scenarios/*.ts`
 
+**Discoverability & site metadata**
+- `app/sitemap.ts`, `app/robots.ts`, `app/manifest.ts` — generated from one shared route list
+  (`lib/public-routes.ts`), so the sitemap can never list a URL robots.txt disallows. `/admin`,
+  `/assessor` and `/play` are excluded from both *and* carry `noindex` in their layouts: robots.txt
+  stops crawling, `noindex` stops indexing of a URL someone links to from elsewhere. `/play` is
+  public but must stay unindexed — a scenario situation in search results is a candidate reading
+  the simulation before sitting it.
+- `app/opengraph-image.tsx` — the share card, generated at build time by `next/og`. Hebrew text runs
+  through `lib/rtl-visual.ts` first: Satori (the renderer behind `next/og`) has no bidi engine and
+  paints characters left-to-right, so without it the Hebrew comes out mirrored. That helper is for
+  Satori only — never use it for page content, where the browser's own bidi handles `dir="rtl"`.
+- `lib/site-url.ts` — `canonicalSiteUrl()` (stable: `metadataBase`, canonicals, sitemap, JSON-LD)
+  and `deploymentUrl()` (per-deploy: links inside outbound notifications) are deliberately separate.
+  Using the per-deployment URL as the canonical would publish a different origin on every push.
+- `components/marketing/structured-data.tsx` — Organization + WebSite + FAQPage JSON-LD, generated
+  from the same `content/faq.ts` the page renders visibly.
+
 **Website** (`app/(marketing)/...`) — hero, problem/shift narrative, interactive state demo,
 how-it-works, technology teaser, process-vs-outcome, evidence & human review, use cases,
 security teaser, philosophy/trust/"what we know", FAQ, contact; a full `/technology` deep-dive
@@ -131,29 +148,47 @@ flow). All routing — send an email, post to Slack, add a CRM row, whatever —
 the Make scenario itself, not in this repo; ManaGame only knows the webhook URL and event shape.
 Never blocks the candidate/session flow: a down or unconfigured webhook is a silent no-op.
 
+A third event, `contact_lead`, fires when someone submits the marketing contact form. It reuses the
+same payload shape (so it needs no new Make configuration) and adds a `lead` object with the
+enquiry itself. This matters more than it looks: without a database the store is process memory, so
+the Make copy is the *only* record of a lead that survives a cold start.
+
 A starter scenario (webhook → router → "session completed" / "needs review" email) already exists
 in the account this was built for — see Make scenario `ManaGame — אירועי סימולציה`.
+
+### Contact form and leads
+
+`/admin/leads` lists every enquiry (newest first) and says plainly when it's showing memory-only
+data. The form itself carries two no-third-party spam guards — a decoy field and a minimum
+fill-time (`lib/spam-guard.ts`) — plus a per-IP rate limit (`lib/rate-limit.ts`). Read the doc
+comments on both: the rate limiter's counters live in the process, so on Vercel it is enforced per
+warm instance and is a speed bump rather than a guarantee until a shared store backs it.
 
 ## Scope notes / what's intentionally lighter than the full spec
 
 - **Admin** is a content *browser* (scenario/turn/delta viewer, event list, fixed rubric view,
   validation checklist), not the full drag-and-drop Scenario Builder wizard (§27-31). Scenario
   content lives in `content/scenarios/*.ts` — versioned with the code, reviewed like code.
-- **English toggle** in the header is present per spec but not yet wired to a translated site —
-  the product is Hebrew-first per the spec's V1 default.
+- **English toggle**: the spec calls for one, and a "עברית | English" control used to sit in the
+  header with no `onClick` and no English site behind it. It has been removed rather than left
+  decorative — on a product that sells evidence and honesty, a control that does nothing is worse
+  than no control. Restore it alongside a real locale route, not before.
 - **Comparison** (`/assessor/comparison`) explains and enforces the D7/seed comparability rule in
   copy, but doesn't yet have two completed same-scenario sessions to compare against each other
   in this fresh environment.
 - Fixed 9-criterion rubric (`lib/scenario-schema.ts`, `CRITERIA`) shared across every domain —
   this is what keeps cross-domain evidence, reports and (future) comparisons apples-to-apples
   without a bespoke rubric per scenario.
-- **Known content gap**: a mechanical check across all 20 scenarios (every path through the
-  deterministic flow — one option per turn) found that all 20 have at least one candidate path
-  that accumulates fewer than 3 distinct measured criteria, which `aggregator.ts` requires for a
-  non-null process score. In 9 of the 20, the worst path measures *zero* criteria — and that
-  worst path tends to be exactly the "spin/centralize/minimize-disclosure" pattern you'd most
-  want to be able to score. Fixing this means adding `criteriaSignals` to specific options across
-  `content/scenarios/*.ts` — a content-authoring task, not a code fix; not done in this pass.
+- **Known content gap**: run `npm run lint:content`. It walks every path through every scenario
+  (exhaustively — one option per turn) and reports that all 20 scenarios have at least one
+  candidate path accumulating fewer than 3 distinct measured criteria, which `aggregator.ts`
+  requires for a non-null process score. In 9 of the 20 the worst path measures *zero* criteria,
+  and 74 of 331 options (22.4%) carry no `criteriaSignals` at all. That worst path tends to be
+  exactly the "spin/centralize/minimize-disclosure" pattern you'd most want to be able to score.
+  Fixing it means adding `criteriaSignals` to specific options across `content/scenarios/*.ts` —
+  a content-authoring task, not a code fix; not done in this pass. Once it is, `npm run
+  lint:content -- --strict` exits non-zero while any scenario still has an unscoreable path, so
+  it works as the completion gate.
 - `scripts/smoke-test.mjs` drives the deterministic composer flow (`DecisionFlow`) specifically —
   it will fail if it runs somewhere `ANTHROPIC_API_KEY` is set, since `/turn` then renders the
   conversational `AgentChatFlow` instead. Not yet updated to detect and exercise both flows.
@@ -169,7 +204,9 @@ npm run dev
 
 ```bash
 npm test                    # unit tests (vitest) — pure engine logic: agent-output validation,
-                             # turn-advance math, memory store
+                             # turn-advance math, memory store, site URLs, spam guard, rate limiter
+npm run lint                # eslint
+npm run lint:content        # scenario criteria-coverage report (see "Known content gap")
 npm run build
 npm run start -- -p 3100   # in one terminal
 npm run smoke               # in another — Playwright checks every page + a full candidate run

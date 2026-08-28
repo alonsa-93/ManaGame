@@ -1,8 +1,9 @@
 import { Alert } from "@/components/ui/alert";
 
 export const metadata = {
-  title: "תנאי שימוש — ManaGame",
+  title: "תנאי שימוש",
   description: "תנאי השימוש בפלטפורמת ManaGame.",
+  alternates: { canonical: "/legal/terms" },
 };
 
 export default function TermsPage() {

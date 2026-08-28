@@ -1,5 +1,11 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Logo } from "@/components/brand/logo";
+
+// robots.txt keeps crawlers out; noindex keeps a URL out of the index even if
+// someone links to it from outside. Both are needed — they solve different
+// halves of the problem.
+export const metadata: Metadata = { robots: { index: false, follow: false } };
 
 const NAV = [
   { href: "/admin/scenarios", label: "תרחישים" },
@@ -7,6 +13,7 @@ const NAV = [
   { href: "/admin/rubric", label: "רובריקה" },
   { href: "/assessor/calibration", label: "כיול" },
   { href: "/assessor/sessions", label: "סשנים" },
+  { href: "/admin/leads", label: "פניות" },
   { href: "/admin/system", label: "מערכת" },
 ];
 

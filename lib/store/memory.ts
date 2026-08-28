@@ -101,6 +101,10 @@ class MemoryStore implements Store {
     this.contacts.push({ ...record, createdAt: new Date().toISOString() });
   }
 
+  async listContactSubmissions() {
+    return [...this.contacts].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  }
+
   async addConversationMessage(record: Omit<ConversationMessageRecord, "id" | "createdAt">) {
     this.conversationMessages.push({ ...record, id: crypto.randomUUID(), createdAt: new Date().toISOString() });
   }

@@ -13,9 +13,13 @@ const COLUMNS = [
   {
     title: "הטכנולוגיה",
     links: [
-      { href: "/technology#engine", label: "המנוע" },
-      { href: "/technology#security", label: "Security" },
-      { href: "/technology#evidence", label: "Evidence" },
+      // These must match real section ids on /technology — see the id list in
+      // app/(marketing)/technology/page.tsx and the SecurityLabSection.
+      // `#engine` and `#evidence` used to be linked here and existed on
+      // neither page; both scrolled nowhere.
+      { href: "/technology#state-engine", label: "מנוע המצב" },
+      { href: "/technology#judge", label: "שכבת השיפוט" },
+      { href: "/technology#security", label: "אבטחה" },
     ],
   },
   {
@@ -28,9 +32,9 @@ const COLUMNS = [
   {
     title: "משפטי",
     links: [
-      { href: "/legal/privacy", label: "Privacy" },
-      { href: "/legal/terms", label: "Terms" },
-      { href: "/legal/accessibility", label: "Accessibility" },
+      { href: "/legal/privacy", label: "מדיניות פרטיות" },
+      { href: "/legal/terms", label: "תנאי שימוש" },
+      { href: "/legal/accessibility", label: "הצהרת נגישות" },
     ],
   },
 ];

@@ -5,9 +5,12 @@ import { Badge } from "@/components/ui/badge";
 import { SecurityLabSection } from "@/components/marketing/technology/security-lab-section";
 
 export const metadata = {
-  title: "איך ManaGame עובדת — מנוע סימולציה וקבלת החלטות",
+  // `absolute` — the title already carries the brand name, so it opts out of
+  // the root layout's "%s — ManaGame" template.
+  title: { absolute: "איך ManaGame עובדת — מנוע סימולציה וקבלת החלטות" },
   description:
     "ארכיטקטורה של שבע שכבות: תרחיש, מנוע מצב, פרשן החלטות, מנוע אירועים, שיפוט, ראיות ובדיקה אנושית.",
+  alternates: { canonical: "/technology" },
 };
 
 const LAYERS = [

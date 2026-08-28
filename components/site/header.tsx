@@ -52,9 +52,13 @@ export function SiteHeader() {
           </nav>
 
           <div className="hidden lg:flex items-center gap-3">
-            <button className="text-xs text-mg-text-secondary hover:text-mg-text" aria-label="שפה">
-              עברית | English
-            </button>
+            {/*
+              A "עברית | English" switch used to sit here with no onClick and no
+              English site behind it. On a product whose whole pitch is evidence
+              and honesty, a control that does nothing is worse than no control,
+              so it's gone until there is something to switch to. Restore it
+              alongside a real locale route, not before.
+            */}
             <Link href="/experience">
               <Button size="sm">בואו ננסה</Button>
             </Link>

@@ -1,4 +1,10 @@
+import type { Metadata } from "next";
 import { Logo } from "@/components/brand/logo";
+
+// Live assessment surface — must never be indexed. A scenario situation
+// appearing in search results would let a candidate read the simulation before
+// sitting it. See the note in lib/public-routes.ts.
+export const metadata: Metadata = { robots: { index: false, follow: false } };
 
 // Candidate experience shell: minimal chrome, no marketing nav — calm and
 // focused per Master Spec §09 ("Candidate UX is the highest-priority
