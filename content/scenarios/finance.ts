@@ -54,7 +54,7 @@ const managerScenario: Scenario = {
           keywords_he: ["הקפאת תקציב", "עצירת הוצאות לכולם", "freeze מיידי לכל המחלקות"],
           deltas: { cash_runway: 1, stakeholder_confidence: -2 },
           evidence_he: "הטיל הקפאת הוצאות גורפת על כלל המחלקות מבלי לבודד תחילה את מקור החריגה.",
-          criteriaSignals: {},
+          criteriaSignals: { diagnosis_before_action: 1, prioritization: 1, realism: 2 },
           nextEvent_he:
             "עדכון חדש\n\nההקפאה הגורפת עצרה גם פעילות שוטפת מול לקוחות. מספר מנהלי מחלקות פונים בבקשה דחופה לחריגים.",
         },
@@ -80,7 +80,7 @@ const managerScenario: Scenario = {
           keywords_he: ["להמתין לנתונים נוספים", "לא להחליט עדיין", "לחכות לסגירת החודש"],
           deltas: { budget_variance: -1 },
           evidence_he: "בחר להמתין לנתונים נוספים לפני קבלת החלטה מחייבת.",
-          criteriaSignals: { knowing_when_to_stop: 3 },
+          criteriaSignals: { knowing_when_to_stop: 3, information_acquisition: 3 },
         },
       ],
     },
@@ -91,6 +91,11 @@ const managerScenario: Scenario = {
       event_he:
         "עדכון חדש\n\nמחלקת השיווק מבקשת הבהרה לגבי היקף ההשפעה על התקציב שלה, ובמקביל מנהל התפעול שואל אם ניתן להימנע מקיצוצים בתחום שלו.",
       constraints_he: ["חלון החלטה קצר", "לחץ ממנהלי מחלקות שונים"],
+      availableIntel: [
+        { label_he: "פילוח החריגה לפי מחלקה ולפי סעיף", cost: 2, accuracy: 90 },
+        { label_he: "תחזית תזרים מעודכנת לשלושת החודשים הבאים", cost: 3, accuracy: 75 },
+        { label_he: "סקירת התחייבויות חוזיות שלא ניתן לקצץ", cost: 1, accuracy: 95 },
+      ],
       decisionPrompt_he: "מה עכשיו?",
       options: [
         {
@@ -109,7 +114,7 @@ const managerScenario: Scenario = {
           keywords_he: ["קיצוץ אחיד", "לחתוך לכולם באותה מידה", "קיצוץ רוחבי"],
           deltas: { budget_variance: 1, stakeholder_confidence: -2 },
           evidence_he: "הטיל קיצוץ אחיד על כלל המחלקות ללא קשר למקור החריגה.",
-          criteriaSignals: {},
+          criteriaSignals: { diagnosis_before_action: 1, prioritization: 1, realism: 2 },
         },
         {
           key: "negotiate_marketing_commitments",
@@ -168,7 +173,7 @@ const managerScenario: Scenario = {
           keywords_he: ["להמשיך כרגיל", "לא לשנות כלום", "להתקדם כמתוכנן"],
           deltas: { forecast_accuracy: -2 },
           evidence_he: "בחר להמשיך כרגיל ללא התאמה לעומס ולסיכון הידע שדווחו.",
-          criteriaSignals: { realism: 2 },
+          criteriaSignals: { realism: 2, workload_management: 1, knowledge_protection: 1 },
         },
       ],
     },
@@ -194,7 +199,7 @@ const managerScenario: Scenario = {
           keywords_he: ["להציג בחיוב", "לא להזכיר את החריגה", "עדכון אופטימי בלבד"],
           deltas: { stakeholder_confidence: -2 },
           evidence_he: "התמקד בהיבטים החיוביים של הרבעון מול ההנהלה הבכירה.",
-          criteriaSignals: {},
+          criteriaSignals: { communication: 1, realism: 1 },
         },
         {
           key: "document_lessons_for_next_quarter",
@@ -261,7 +266,7 @@ const vpScenario: Scenario = {
           keywords_he: ["לעדכן דירקטוריון מוקדם", "שקיפות מול הדירקטוריון", "תדרוך דחוף להנהלה"],
           deltas: { stakeholder_confidence: 2 },
           evidence_he: "בחר לתדרך את הדירקטוריון מוקדם ובאופן שקוף על הפער שזוהה, גם בטרם התבררה התמונה המלאה.",
-          criteriaSignals: { communication: 5 },
+          criteriaSignals: { communication: 5, knowing_when_to_stop: 3 },
         },
         {
           key: "proceed_with_acquisition_as_planned",
@@ -269,7 +274,7 @@ const vpScenario: Scenario = {
           keywords_he: ["להמשיך כמתוכנן", "לא לעצור את העסקה", "לסגור את הרכישה בזמן"],
           deltas: { cash_runway: -2, forecast_accuracy: -1 },
           evidence_he: "בחר להמשיך בתהליך הרכישה כמתוכנן, ללא עדכון לוח הזמנים לאור הפער שזוהה בתזרים.",
-          criteriaSignals: {},
+          criteriaSignals: { diagnosis_before_action: 1, knowing_when_to_stop: 1, realism: 1 },
         },
         {
           key: "hedge_fx_exposure_immediately",
@@ -288,6 +293,11 @@ const vpScenario: Scenario = {
       event_he:
         "עדכון חדש\n\nהלקוח הבין-לאומי מודיע כי התשלום צפוי להתעכב בשישה עד שמונה שבועות נוספים בשל הליכי אישור פנימיים אצלו, בעוד יועצי העסקה ממתינים לתשובה.",
       constraints_he: ["לוח זמנים לחוץ לסגירת עסקת הרכישה", "אי-ודאות לגבי מועד הגבייה בפועל"],
+      availableIntel: [
+        { label_he: "בדיקת איתנות פיננסית של הלקוח המעכב", cost: 3, accuracy: 80 },
+        { label_he: "הערכת עלות עיכוב עסקת הרכישה ברבעון", cost: 2, accuracy: 85 },
+        { label_he: "בחינת אפשרויות מימון גישור", cost: 2, accuracy: 70 },
+      ],
       decisionPrompt_he: "מה הייתם עושים עכשיו?",
       options: [
         {
@@ -322,7 +332,7 @@ const vpScenario: Scenario = {
           keywords_he: ["לא לשנות לוח זמנים", "להתחייב כרגיל", "לסגור בזמן המקורי"],
           deltas: { cash_runway: -3, stakeholder_confidence: -2 },
           evidence_he: "בחר להתחייב ללוח הזמנים המקורי של העסקה, ללא התאמה לעיכוב הגבייה שהתברר.",
-          criteriaSignals: {},
+          criteriaSignals: { realism: 1, communication: 2, diagnosis_before_action: 1 },
         },
       ],
     },
@@ -365,7 +375,7 @@ const vpScenario: Scenario = {
           keywords_he: ["להמשיך כרגיל", "לא לשנות כלום", "להתקדם כמתוכנן ללא התאמה"],
           deltas: { forecast_accuracy: -2 },
           evidence_he: "בחר להמשיך כרגיל ללא התאמה לעומס ולסיכון הידע שדווחו.",
-          criteriaSignals: { realism: 2 },
+          criteriaSignals: { realism: 2, workload_management: 1, knowledge_protection: 1 },
         },
       ],
     },
@@ -391,7 +401,7 @@ const vpScenario: Scenario = {
           keywords_he: ["להציג כקטן", "למזער את הדיווח", "לא להדגיש את הסיכון"],
           deltas: { stakeholder_confidence: -2 },
           evidence_he: "בחר להציג את הסיכון בתזרים כמינימלי, מעבר למה שהנתונים תמכו בו.",
-          criteriaSignals: {},
+          criteriaSignals: { communication: 1, realism: 1, financial_awareness: 2 },
         },
         {
           key: "propose_governance_change",

@@ -58,7 +58,7 @@ const managerScenario: Scenario = {
           keywords_he: ["עקיפה זמנית", "לצאת עם תיקון זמני", "לעמוד בתאריך בכל מחיר"],
           deltas: { schedule: 2, tech_debt: 8, defect_rate: 3 },
           evidence_he: "בחר לעקוף את הבאג בפתרון זמני כדי לעמוד במועד ההשקה שכבר תוקשר.",
-          criteriaSignals: { realism: 2 },
+          criteriaSignals: { realism: 2, prioritization: 2 },
           nextEvent_he:
             "עדכון חדש\n\nההשקה יצאה במועד, אך מספר לקוחות כבר דיווחו על תשלומים שנכשלו בשקט, וצוות התמיכה מבקש הנחיה דחופה איך להגיב.",
         },
@@ -95,6 +95,11 @@ const managerScenario: Scenario = {
       event_he:
         "עדכון חדש\n\nבמהלך הבדיקות הנוספות התגלה שהבאג משפיע גם על תרחיש תשלום שני, שלא זוהה בבדיקה הראשונית.",
       constraints_he: ["חלון החלטה קצר", "מידע חלקי על היקף ההשפעה המלא"],
+      availableIntel: [
+        { label_he: "היקף הלקוחות שנחשפו לבאג בפועל", cost: 2, accuracy: 85 },
+        { label_he: "הערכת מאמץ מהנדס לתיקון שורשי מול עקיפה", cost: 2, accuracy: 75 },
+        { label_he: "סקירת דיווחי תמיכה מהשבועיים האחרונים", cost: 1, accuracy: 90 },
+      ],
       decisionPrompt_he: "מה עכשיו?",
       options: [
         {
@@ -127,7 +132,7 @@ const managerScenario: Scenario = {
           keywords_he: ["תאריך חדש", "התחייבות ללקוח", "לסגור תאריך סופי"],
           deltas: { schedule: 1, defect_rate: 1 },
           evidence_he: "מסר ללקוח תאריך חדש ומחייב מבלי לוודא שהתיקון לתרחיש השני הושלם.",
-          criteriaSignals: {},
+          criteriaSignals: { realism: 1, communication: 2, diagnosis_before_action: 1 },
         },
       ],
     },
@@ -154,7 +159,7 @@ const managerScenario: Scenario = {
           keywords_he: ["לבטל חופשה", "לדחות יציאה לחופשה", "לבקש להישאר"],
           deltas: { morale: -4, schedule: 1 },
           evidence_he: "ביקש מהמפתח הבכיר לדחות את חופשתו המתוכננת כדי להבטיח כיסוי.",
-          criteriaSignals: {},
+          criteriaSignals: { realism: 1, communication: 2, diagnosis_before_action: 1 },
         },
         {
           key: "redistribute_workload",
@@ -170,7 +175,7 @@ const managerScenario: Scenario = {
           keywords_he: ["להמשיך כרגיל", "לא לשנות כלום", "להתקדם כמתוכנן"],
           deltas: { morale: -3 },
           evidence_he: "בחר להמשיך לפי התוכנית הקיימת ללא התאמה לעומס ולסיכון בידע שדווחו.",
-          criteriaSignals: {},
+          criteriaSignals: { realism: 2, workload_management: 1, knowledge_protection: 1 },
         },
       ],
     },
@@ -196,7 +201,7 @@ const managerScenario: Scenario = {
           keywords_he: ["הכל תקין", "לא להזכיר בעיות", "להציג כמוכן לגמרי"],
           deltas: { defect_rate: 1 },
           evidence_he: "הציג את מצב הפרויקט כמטופל במלואו, מעבר למה שהבדיקות תמכו בו.",
-          criteriaSignals: {},
+          criteriaSignals: { communication: 1, realism: 1 },
         },
         {
           key: "document_lessons_learned",
@@ -267,7 +272,7 @@ const vpScenario: Scenario = {
           keywords_he: ["להמשיך כמתוכנן", "לא לשנות תוכנית", "להתקדם ללא עצירה"],
           deltas: { schedule: 2, tech_debt: 5 },
           evidence_he: "בחר להמשיך לפי מפת הדרכים המקורית ללא בדיקה נוספת של חומרת הפגם.",
-          criteriaSignals: {},
+          criteriaSignals: { diagnosis_before_action: 1, prioritization: 1, realism: 2 },
           nextEvent_he:
             "עדכון חדש\n\nאחד הלקוחות האסטרטגיים ביצע בדיקת קבלה עצמאית וזיהה את בעיית הביצועים בעצמו, לפני שהצגתם את הנושא מיוזמתכם.",
         },
@@ -277,7 +282,7 @@ const vpScenario: Scenario = {
           keywords_he: ["לעדכן דירקטוריון", "תדרוך מוקדם", "שקיפות כלפי ההנהלה"],
           deltas: {},
           evidence_he: "בחר לתדרך את הדירקטוריון מוקדם ובאופן שקוף, גם לפני שהתמונה הייתה מלאה.",
-          criteriaSignals: { communication: 5 },
+          criteriaSignals: { communication: 5, knowing_when_to_stop: 3 },
         },
         {
           key: "pause_sales_commitments",
@@ -304,6 +309,11 @@ const vpScenario: Scenario = {
       event_he:
         "עדכון חדש\n\nצוות ההנדסה מציג שתי חלופות: תיקון נקודתי שיאפשר עמידה חלקית בעומס תוך חודש, או שכתוב ארכיטקטוני שיימשך כרבעון אך יפתור את הבעיה במלואה.",
       constraints_he: ["לחץ לתשובה מהירה מהלקוח הגדול ביותר", "אי-ודאות לגבי היתכנות הפתרון הנקודתי"],
+      availableIntel: [
+        { label_he: "סקירה ארכיטקטונית עצמאית של היתכנות התיקון", cost: 3, accuracy: 85 },
+        { label_he: "מיפוי כל המערכות התלויות ברכיב הפגום", cost: 2, accuracy: 90 },
+        { label_he: "בדיקת התחייבויות חוזיות מול הלקוח האסטרטגי", cost: 2, accuracy: 95 },
+      ],
       decisionPrompt_he: "מה הייתם עושים עכשיו?",
       options: [
         {
@@ -312,7 +322,7 @@ const vpScenario: Scenario = {
           keywords_he: ["תיקון נקודתי", "פתרון זמני", "לפתור חלקית בטווח קצר"],
           deltas: { schedule: 2, tech_debt: 6, defect_rate: 3 },
           evidence_he: "התחייב לתיקון נקודתי בטווח קצר כדי לענות ללחץ הלקוח.",
-          criteriaSignals: { realism: 2 },
+          criteriaSignals: { realism: 2, communication: 2 },
         },
         {
           key: "propose_architecture_rewrite",
@@ -336,7 +346,7 @@ const vpScenario: Scenario = {
           keywords_he: ["הבטחה מלאה", "לאשר תאריך סופי ללא תנאי", "התחייבות בלתי מסויגת"],
           deltas: { schedule: -2 },
           evidence_he: "התחייב ללקוח באופן מלא וללא הסתייגות, בטרם התבררה ההיתכנות הטכנית.",
-          criteriaSignals: {},
+          criteriaSignals: { realism: 1, communication: 2, diagnosis_before_action: 1 },
         },
         {
           key: "parallel_track_both_paths",
@@ -387,7 +397,7 @@ const vpScenario: Scenario = {
           keywords_he: ["לרכז הכל דרכי", "לא להאציל עדכונים", "כל התקשורת עוברת דרכי"],
           deltas: { morale: -2 },
           evidence_he: "בחר לרכז את כל העדכונים לבעלי העניין דרכו באופן בלעדי, ללא האצלה.",
-          criteriaSignals: {},
+          criteriaSignals: { workload_management: 1, knowledge_protection: 1, communication: 2 },
         },
       ],
     },
@@ -413,7 +423,7 @@ const vpScenario: Scenario = {
           keywords_he: ["למזער את הדיווח", "להציג כבעיה קטנה", "לא להדגיש את ההשפעה"],
           deltas: {},
           evidence_he: "בחר להציג את ההשפעה כמינימלית מול הדירקטוריון, מעבר למה שהנתונים תמכו בו.",
-          criteriaSignals: {},
+          criteriaSignals: { communication: 1, realism: 1 },
         },
         {
           key: "propose_core_tech_governance",

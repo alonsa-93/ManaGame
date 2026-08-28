@@ -82,7 +82,7 @@ const managerScenario: Scenario = {
           keywords_he: ["להמתין ולבדוק", "לא לפעול עדיין", "לראות איך זה מתפתח"],
           deltas: { attrition_risk: 4, workload: 3 },
           evidence_he: "בחר להמתין ולעקוב אחרי ההתפתחויות לפני נקיטת פעולה כלשהי.",
-          criteriaSignals: {},
+          criteriaSignals: { knowing_when_to_stop: 2, diagnosis_before_action: 2, prioritization: 1 },
         },
       ],
     },
@@ -93,6 +93,11 @@ const managerScenario: Scenario = {
       event_he:
         "עדכון חדש\n\nדנה ביקשה לקבוע שיחת המשך בהקדם. במקביל, יוסי פנה אליכם בכתב עם תלונה קצרה על חלוקת המשימות מול רותם.",
       constraints_he: ["חלון זמן קצר לפני שהמתיחות משפיעה על התוצרים", "מידע חלקי על כוונותיה הסופיות של דנה"],
+      availableIntel: [
+        { label_he: "שיחות אישיות קצרות עם שאר חברי הצוות", cost: 2, accuracy: 75 },
+        { label_he: "סקירת חלוקת המשימות בפועל בחודשיים האחרונים", cost: 1, accuracy: 90 },
+        { label_he: "נתוני שעות נוספות והיעדרויות בצוות", cost: 1, accuracy: 95 },
+      ],
       decisionPrompt_he: "איך תמשיכו מכאן?",
       options: [
         {
@@ -127,7 +132,7 @@ const managerScenario: Scenario = {
           keywords_he: ["להעביר את המשימה לאדם אחר", "פתרון מהיר לסכסוך", "לעקוף את הבעיה בינתיים"],
           deltas: { morale: -1, workload: 1 },
           evidence_he: "העביר את המשימה השנויה במחלוקת לאדם נוסף, מבלי לטפל בשורש המתיחות.",
-          criteriaSignals: {},
+          criteriaSignals: { diagnosis_before_action: 1, workload_management: 2, communication: 2 },
         },
         {
           key: "postpone_review",
@@ -135,7 +140,7 @@ const managerScenario: Scenario = {
           keywords_he: ["לדחות את הטיפול", "להתמקד קודם במסירה", "לא כרגע, יש עדיפות אחרת"],
           deltas: { attrition_risk: 5 },
           evidence_he: "דחה את הטיפול בנושאי הצוות לטובת מסירה דחופה אחרת.",
-          criteriaSignals: {},
+          criteriaSignals: { prioritization: 2, workload_management: 2, knowing_when_to_stop: 2 },
         },
       ],
     },
@@ -178,7 +183,7 @@ const managerScenario: Scenario = {
           keywords_he: ["להתמקד במסירה קודם", "לדחות טיפול בעומס", "להתקדם לפי התוכנית הקיימת"],
           deltas: { workload: 5, attrition_risk: 3 },
           evidence_he: "בחר להעדיף את המסירה הדחופה על פני טיפול מיידי בסימני העומס שדווחו.",
-          criteriaSignals: {},
+          criteriaSignals: { workload_management: 0, prioritization: 2, realism: 2 },
         },
         {
           key: "bring_temp_backfill",
@@ -204,7 +209,7 @@ const managerScenario: Scenario = {
           keywords_he: ["עדכון שקוף לצוות", "לשתף את הצוות בשינויים", "תקשורת פתוחה על מה שהשתנה"],
           deltas: { org_trust: 3, morale: 2 },
           evidence_he: "מסר לצוות עדכון שקוף על השינויים בחלוקת העבודה ובתחומי האחריות, ללא חשיפת פרטים אישיים.",
-          criteriaSignals: { communication: 5 },
+          criteriaSignals: { communication: 5, knowledge_protection: 3, workload_management: 3 },
         },
         {
           key: "document_retention_playbook",
@@ -220,7 +225,7 @@ const managerScenario: Scenario = {
           keywords_he: ["לסגור בשקט", "לא לתקשר יותר על זה", "להמשיך הלאה בלי לדבר"],
           deltas: { org_trust: -2 },
           evidence_he: "בחר לסגור את הנושא בשקט, ללא עדכון המשך לצוות או להנהלה.",
-          criteriaSignals: {},
+          criteriaSignals: { communication: 1, knowledge_protection: 1 },
         },
         {
           key: "schedule_followup_checkins",
@@ -293,7 +298,7 @@ const vpScenario: Scenario = {
           keywords_he: ["לתדרך את המנכ\"לית", "שקיפות מול ההנהלה", "לעדכן מוקדם למרות מידע חלקי"],
           deltas: { org_trust: 1 },
           evidence_he: "תדרך את המנכ\"לית מוקדם ובאופן שקוף על הסיכון המתהווה, על אף שהתמונה עדיין לא הייתה מלאה.",
-          criteriaSignals: { communication: 5 },
+          criteriaSignals: { communication: 5, knowing_when_to_stop: 3 },
         },
         {
           key: "launch_targeted_pulse_survey",
@@ -309,7 +314,7 @@ const vpScenario: Scenario = {
           keywords_he: ["בונוס שימור מיידי", "להכריז על תגמול לכולם", "מענק שימור רוחבי לפונקציה"],
           deltas: { attrition_risk: -4, org_trust: -1 },
           evidence_he: "הכריז על בונוס שימור רוחבי לכלל הפונקציה מיד, ללא אבחון מוקדם של מוקדי הסיכון.",
-          criteriaSignals: {},
+          criteriaSignals: { diagnosis_before_action: 1, prioritization: 1, realism: 2 },
         },
       ],
     },
@@ -320,6 +325,11 @@ const vpScenario: Scenario = {
       event_he:
         "עדכון חדש\n\nשמועה על השינוי המבני האפשרי דלפה בתוך הפונקציה, ומספר מנהלים בכירים מבקשים תשובות ברורות בתוך ימים ספורים.",
       constraints_he: ["השינוי המבני עדיין לא סגור סופית ברמת ההנהלה", "חלון תגובה קצר לפני שהשמועה מתפשטת עוד"],
+      availableIntel: [
+        { label_he: "סקר דופק אנונימי בפונקציה הקריטית", cost: 2, accuracy: 80 },
+        { label_he: "נתוני שוק על שכר ותחרות לתפקידים המקבילים", cost: 3, accuracy: 85 },
+        { label_he: "מיפוי הידע הקריטי המרוכז אצל אנשי מפתח", cost: 2, accuracy: 90 },
+      ],
       decisionPrompt_he: "מה הייתם עושים עכשיו?",
       options: [
         {
@@ -338,7 +348,7 @@ const vpScenario: Scenario = {
           keywords_he: ["להכחיש את השמועה", "להרגיע בלי לפרט", "לומר שאין שינוי בתהליך"],
           deltas: { org_trust: -5, attrition_risk: 4 },
           evidence_he: "הכחיש בפני המנהלים שקיים תהליך של שינוי מבני, בניגוד למצב בפועל.",
-          criteriaSignals: {},
+          criteriaSignals: { communication: 0, realism: 0 },
         },
         {
           key: "accelerate_decision_timeline",
@@ -362,7 +372,7 @@ const vpScenario: Scenario = {
           keywords_he: ["להמתין להחלטה סופית", "לא לתקשר כלום כרגע", "לשתוק עד שיש החלטה"],
           deltas: { org_trust: -2, attrition_risk: 2 },
           evidence_he: "בחר לא לתקשר דבר בנוגע לשמועה עד לגיבוש ההחלטה הסופית.",
-          criteriaSignals: {},
+          criteriaSignals: { communication: 2, knowing_when_to_stop: 2, realism: 2 },
         },
       ],
     },
@@ -405,7 +415,7 @@ const vpScenario: Scenario = {
           keywords_he: ["לבקש מהצוות לספוג את הפער", "להטיל עומס נוסף בלי תגבור", "להסתמך על שאר הצוות"],
           deltas: { workload: 7, morale: -3 },
           evidence_he: "ביקש מיתר הצוות לספוג עומס נוסף לקראת אפשרות של עזיבה, ללא תגבור נלווה.",
-          criteriaSignals: {},
+          criteriaSignals: { realism: 2, workload_management: 0 },
         },
         {
           key: "escalate_headcount_request",
@@ -439,7 +449,7 @@ const vpScenario: Scenario = {
           keywords_he: ["להציג רק את ההצלחה", "לא להזכיר את הסיכון שנותר", "דיווח חלקי בלבד"],
           deltas: { org_trust: -3, attrition_risk: 2 },
           evidence_he: "הציג לדירקטוריון את עמידה באבן הדרך בלבד, מבלי להתייחס לסיכון העזיבה שעדיין קיים.",
-          criteriaSignals: {},
+          criteriaSignals: { communication: 1, realism: 1 },
         },
         {
           key: "institutionalize_early_warning_process",

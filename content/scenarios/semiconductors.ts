@@ -76,7 +76,7 @@ const managerScenario: Scenario = {
           keywords_he: ["להמשיך ולנטר", "לא לעצור, לנטר מקרוב", "המשך ייצור עם מעקב"],
           deltas: { yield: -4, schedule: 2 },
           evidence_he: "בחר להמשיך בייצור תוך ניטור צמוד של מגמת התשואה, במקום לעצור מיידית.",
-          criteriaSignals: { realism: 2 },
+          criteriaSignals: { realism: 2, knowing_when_to_stop: 2, diagnosis_before_action: 2 },
         },
         {
           key: "notify_customers_proactively",
@@ -84,7 +84,7 @@ const managerScenario: Scenario = {
           keywords_he: ["לעדכן לקוחות מיד", "יידוע יזום", "להתריע ללקוח מראש"],
           deltas: { customer_trust: 2 },
           evidence_he: "עדכן את הלקוחות המרכזיים באופן יזום, עוד לפני שהתמונה הייתה מלאה.",
-          criteriaSignals: { communication: 4 },
+          criteriaSignals: { communication: 4, knowing_when_to_stop: 3 },
         },
       ],
     },
@@ -95,6 +95,11 @@ const managerScenario: Scenario = {
       event_he:
         "עדכון חדש\n\nמהנדס האיכות מדווח שהניקוי הראשוני של תחנת האכילה הושלם, אך אין עדיין אישור סופי שהגורם לזיהום חוסל לחלוטין. במקביל, לקוח אסטרטגי מבקש אישור בכתב שהמשלוח הקרוב עומד בסטנדרט.",
       constraints_he: ["חלון החלטה של פחות מ-24 שעות", "אין עדיין אישור סופי לניקוי המלא"],
+      availableIntel: [
+        { label_he: "בדיקת SEM על דגימות מהלוט הקודם", cost: 3, accuracy: 90 },
+        { label_he: "נתוני ניטור חלקיקים מתחנת האכילה בשבוע האחרון", cost: 2, accuracy: 85 },
+        { label_he: "מיפוי הלקוחות שקיבלו רכיבים מאותו לוט", cost: 1, accuracy: 95 },
+      ],
       decisionPrompt_he: "מה עכשיו?",
       options: [
         {
@@ -127,7 +132,7 @@ const managerScenario: Scenario = {
           keywords_he: ["לחדש ייצור מלא", "לחזור לעבודה כרגיל", "לא להמתין לאישור סופי"],
           deltas: { yield: -3, downtime_cost: -10 },
           evidence_he: "חידש ייצור מלא על סמך ניקוי ראשוני בלבד, בטרם אושר שהגורם לזיהום חוסל לחלוטין.",
-          criteriaSignals: {},
+          criteriaSignals: { knowing_when_to_stop: 2, diagnosis_before_action: 2, prioritization: 1 },
         },
       ],
     },
@@ -169,7 +174,7 @@ const managerScenario: Scenario = {
           keywords_he: ["להמשיך כרגיל", "לא לשנות משמרות", "להתקדם כמתוכנן"],
           deltas: { yield: -1 },
           evidence_he: "בחר להמשיך לפי לוח המשמרות הקיים ללא התאמה לעייפות שדווחה.",
-          criteriaSignals: { realism: 2 },
+          criteriaSignals: { realism: 2, workload_management: 1 },
         },
       ],
     },
@@ -194,7 +199,7 @@ const managerScenario: Scenario = {
           keywords_he: ["להציג בחיוב", "לא להזכיר את התקלה", "עדכון אופטימי בלבד"],
           deltas: { customer_trust: -1 },
           evidence_he: "התמקד בהיבטים החיוביים של האירוע מול הלקוח וההנהלה, מבלי לפרט את הממצאים המלאים.",
-          criteriaSignals: {},
+          criteriaSignals: { communication: 1, realism: 1 },
         },
         {
           key: "document_lessons_learned",
@@ -276,7 +281,7 @@ const vpScenario: Scenario = {
           keywords_he: ["לעדכן דירקטוריון מיד", "שקיפות מול הדירקטוריון", "תדרוך דחוף להנהלה"],
           deltas: { customer_trust: 1 },
           evidence_he: "תדרך את הדירקטוריון מיידית ובאופן שקוף על אי-הוודאות, לפני קבלת ההחלטה הסופית.",
-          criteriaSignals: { communication: 5 },
+          criteriaSignals: { communication: 5, knowing_when_to_stop: 3 },
         },
         {
           key: "continue_full_production_pending_data",
@@ -284,7 +289,7 @@ const vpScenario: Scenario = {
           keywords_he: ["להמשיך ייצור מלא", "לא לעצור עד שיש ודאות", "המשך כרגיל עד לנתונים"],
           deltas: { revenue_exposure: -5, yield_rate: -2 },
           evidence_he: "בחר להמשיך בייצור מלא עד לקבלת תוצאות סופיות, חרף אינדיקציות ראשוניות לסיכון.",
-          criteriaSignals: {},
+          criteriaSignals: { diagnosis_before_action: 1, realism: 1, knowing_when_to_stop: 1 },
         },
       ],
     },
@@ -295,6 +300,11 @@ const vpScenario: Scenario = {
       event_he:
         "עדכון חדש\n\nצוות האמינות מדווח שהפגם ככל הנראה מוגבל לתת-אצווה שיוצרה בחלון זמן מוגדר, אך אינו יכול לשלול לחלוטין חשיפה רחבה יותר ללא בדיקה נוספת. במקביל, צוות המשפט מזכיר שקיימות דרישות דיווח רגולטוריות במדינות מסוימות.",
       constraints_he: ["לחץ להתחייבות כתובה מול לקוח אסטרטגי", "היקף החשיפה בקרב רכיבים שכבר נשלחו טרם ברור"],
+      availableIntel: [
+        { label_he: "בדיקה מואצת של רכיבים שכבר נשלחו ללקוחות", cost: 3, accuracy: 85 },
+        { label_he: "חוות דעת אמינות עצמאית על חומרת הפגם", cost: 3, accuracy: 75 },
+        { label_he: "סקירת חובות הדיווח החוזיות ללקוח הרכב", cost: 1, accuracy: 95 },
+      ],
       decisionPrompt_he: "מה הייתם עושים עכשיו?",
       options: [
         {
@@ -329,7 +339,7 @@ const vpScenario: Scenario = {
           keywords_he: ["להמתין לנתונים מלאים", "לא לעדכן עדיין", "לחכות לתמונה סופית"],
           deltas: { customer_trust: -2 },
           evidence_he: "בחר להמתין לנתונים מלאים לפני יידוע הלקוחות, חרף הלחץ לתשובה מיידית.",
-          criteriaSignals: { knowing_when_to_stop: 2 },
+          criteriaSignals: { knowing_when_to_stop: 2, information_acquisition: 3 },
         },
       ],
     },
@@ -372,7 +382,7 @@ const vpScenario: Scenario = {
           keywords_he: ["לבקש מהמהנדס להמשיך", "לא לשחרר אותו כרגע", "להישאר תלויים במהנדס אחד"],
           deltas: { line_downtime_days: -1 },
           evidence_he: "ביקש מהמהנדס הבכיר להמשיך ולהוביל את החקירה למרות סימני העומס שדווחו.",
-          criteriaSignals: {},
+          criteriaSignals: { workload_management: 0, knowledge_protection: 1, realism: 2 },
         },
       ],
     },
@@ -413,7 +423,7 @@ const vpScenario: Scenario = {
           keywords_he: ["לצמצם את הדיווח", "להציג כקטן ככל האפשר", "לא לפרט את מלוא ההיקף"],
           deltas: { customer_trust: -3 },
           evidence_he: "בחר לצמצם את היקף הגילוי כלפי הדירקטוריון והלקוחות, מעבר למה שהנתונים תמכו בו.",
-          criteriaSignals: {},
+          criteriaSignals: { communication: 1, realism: 1 },
         },
       ],
     },

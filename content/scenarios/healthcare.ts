@@ -100,7 +100,7 @@ const managerScenario: Scenario = {
           keywords_he: ["להתריע למרפאות", "הודעה מיידית ללקוחות", "עדכון בטיחות דחוף"],
           deltas: { patient_safety_risk: -2, regulatory_readiness: -3 },
           evidence_he: "בחר להפיץ התרעה לכלל המרפאות באופן מיידי, בטרם הושלם בירור ראשוני של הגורם.",
-          criteriaSignals: { communication: 4 },
+          criteriaSignals: { communication: 4, knowing_when_to_stop: 3 },
         },
         {
           key: "continue_normal_operations",
@@ -108,7 +108,7 @@ const managerScenario: Scenario = {
           keywords_he: ["להמשיך כרגיל", "לא לעצור ייצור", "המשך הפצה רגילה"],
           deltas: { patient_safety_risk: 4, schedule: 2 },
           evidence_he: "בחר להמשיך בייצור ובהפצה הרגילים ללא שינוי, על בסיס המידע הראשוני שהיה זמין.",
-          criteriaSignals: {},
+          criteriaSignals: { diagnosis_before_action: 1, knowing_when_to_stop: 1, realism: 1 },
         },
         {
           key: "escalate_to_regulatory_affairs",
@@ -130,6 +130,11 @@ const managerScenario: Scenario = {
         "חלון דיווח רגולטורי של חמישה ימי עבודה",
         "קשר סיבתי לא סופי",
         "אי-ודאות אם מדובר במאגר ייצור בודד",
+      ],
+      availableIntel: [
+        { label_he: "בדיקת מעבדה של דגימות מאותו מאגר ייצור", cost: 3, accuracy: 90 },
+        { label_he: "מיפוי המכשירים מהמאגר שכבר הגיעו למרפאות", cost: 2, accuracy: 95 },
+        { label_he: "סקירת דיווחי אירועים דומים בשנתיים האחרונות", cost: 1, accuracy: 75 },
       ],
       decisionPrompt_he: "מה השלב הבא?",
       options: [
@@ -157,7 +162,7 @@ const managerScenario: Scenario = {
           keywords_he: ["מענה מינימלי לרגולטור", "לעכב פרטים לרשות", "לחכות לפני דיווח מלא"],
           deltas: { regulatory_readiness: -3 },
           evidence_he: "בחר להשיב לרשות המפקחת באופן מינימלי, ולעכב שיתוף פרטים עד להשלמת הבדיקה הפנימית.",
-          criteriaSignals: {},
+          criteriaSignals: { communication: 1, realism: 2, knowing_when_to_stop: 2 },
         },
         {
           key: "pause_distribution_pending_root_cause",
@@ -208,7 +213,7 @@ const managerScenario: Scenario = {
           keywords_he: ["להמשיך באותו קצב", "לא לשנות הקצאה", "להתקדם כרגיל"],
           deltas: { patient_safety_risk: 1 },
           evidence_he: "בחר להמשיך באותו קצב עבודה ללא שינוי, חרף סימני העומס שדווחו.",
-          criteriaSignals: {},
+          criteriaSignals: { realism: 2, workload_management: 1 },
         },
       ],
     },
@@ -234,7 +239,7 @@ const managerScenario: Scenario = {
           keywords_he: ["לצמצם דיווח", "לא לפרט היקף מלא", "דיווח חלקי"],
           deltas: { regulatory_readiness: -3 },
           evidence_he: "בחר לצמצם את היקף הדיווח לגורם השורשי בלבד, ללא פירוט מלא של ההיקף שהתגלה.",
-          criteriaSignals: {},
+          criteriaSignals: { communication: 1, realism: 1 },
         },
         {
           key: "document_lessons_for_qms",
@@ -338,7 +343,7 @@ const vpScenario: Scenario = {
           keywords_he: ["לתדרך דירקטוריון", "להציג תרחישים להנהלה", "עדכון הנהלה בכירה עם חלופות"],
           deltas: { regulatory_readiness: 2 },
           evidence_he: "תדרך את הדירקטוריון והציג מספר תרחישי החלטה אפשריים במקום המלצה בודדת מוקדמת מדי.",
-          criteriaSignals: { communication: 5 },
+          criteriaSignals: { communication: 5, prioritization: 4 },
         },
         {
           key: "wait_for_full_causal_confirmation",
@@ -346,7 +351,7 @@ const vpScenario: Scenario = {
           keywords_he: ["להמתין לאישור סופי", "לא לפעול לפני ודאות מלאה", "לחכות לנתונים נוספים"],
           deltas: { schedule: 2, patient_safety_risk: 2 },
           evidence_he: "בחר להמתין לאישור סיבתי סופי לפני נקיטת כל פעולה, לרבות פעולה חלקית.",
-          criteriaSignals: {},
+          criteriaSignals: { knowing_when_to_stop: 2, diagnosis_before_action: 2, prioritization: 1 },
         },
         {
           key: "engage_legal_and_regulatory_jointly",
@@ -369,6 +374,11 @@ const vpScenario: Scenario = {
         "חשיפה תקשורתית אפשרית",
         "אי-ודאות לגבי היקף המכשירים המושפעים",
       ],
+      availableIntel: [
+        { label_he: "חוות דעת רגולטורית חיצונית על היקף הפעולה הנדרש", cost: 3, accuracy: 85 },
+        { label_he: "ניתוח סטטיסטי של שיעור הכשל בתת-האוכלוסייה", cost: 3, accuracy: 80 },
+        { label_he: "הערכת עלות ולוחות זמנים לפעולת שדה רחבה", cost: 2, accuracy: 90 },
+      ],
       decisionPrompt_he: "מה הייתם עושים עכשיו?",
       options: [
         {
@@ -385,7 +395,7 @@ const vpScenario: Scenario = {
           keywords_he: ["פעולת שדה רחבה", "פעולת שדה מלאה", "תיקון לכלל המכשירים"],
           deltas: { patient_safety_risk: -7, schedule: -5, budget: -7 },
           evidence_he: "בחר בפעולת שדה רחבה החלה על כלל המכשירים בשוק, מעבר לתת-הקבוצה שזוהתה כחשודה.",
-          criteriaSignals: { realism: 2 },
+          criteriaSignals: { realism: 2, financial_awareness: 1, prioritization: 2 },
         },
         {
           key: "formal_response_to_eu_regulator",
@@ -403,7 +413,7 @@ const vpScenario: Scenario = {
           keywords_he: ["לא להגיב לתקשורת", "להימנע מתגובה לעיתונות", "לדחות תגובה לתקשורת"],
           deltas: { regulatory_readiness: -2 },
           evidence_he: "בחר להימנע לחלוטין ממתן תגובה לתקשורת עד לגיבוש החלטה סופית.",
-          criteriaSignals: {},
+          criteriaSignals: { communication: 2, knowing_when_to_stop: 3, realism: 3 },
         },
       ],
     },
@@ -434,7 +444,7 @@ const vpScenario: Scenario = {
           keywords_he: ["להחליט עכשיו", "לא לחכות למדגם נוסף", "החלטה מיידית ללא הנתונים"],
           deltas: { schedule: 2, patient_safety_risk: 2 },
           evidence_he: "בחר לקבל החלטה סופית באותו יום, ללא המתנה לנתוני המדגם השלישי.",
-          criteriaSignals: {},
+          criteriaSignals: { information_acquisition: 1, diagnosis_before_action: 2, knowing_when_to_stop: 2 },
         },
         {
           key: "redistribute_crossfunctional_load",
@@ -476,7 +486,7 @@ const vpScenario: Scenario = {
           keywords_he: ["דיווח מינימלי", "לצמצם לדרישה הרגולטורית", "לא לפרט מעבר לנדרש"],
           deltas: { regulatory_readiness: -4 },
           evidence_he: "בחר לצמצם את הדיווח למינימום הנדרש רגולטורית בלבד, ללא פירוט תוכנית מניעה.",
-          criteriaSignals: {},
+          criteriaSignals: { communication: 1, realism: 2 },
         },
         {
           key: "propose_qms_structural_change",

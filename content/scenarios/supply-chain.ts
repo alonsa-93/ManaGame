@@ -53,7 +53,7 @@ const managerScenario: Scenario = {
           keywords_he: ["הקצאת עובדים", "להעביר עובדים", "הקצאה מחדש של כוח אדם"],
           deltas: { schedule: 2, quality: -2 },
           evidence_he: "הקצה מחדש כוח אדם כדי לצמצם את הפיגור בלוח הזמנים.",
-          criteriaSignals: { prioritization: 3 },
+          criteriaSignals: { prioritization: 3, workload_management: 3 },
         },
         {
           key: "defer_secondary_initiative",
@@ -77,7 +77,7 @@ const managerScenario: Scenario = {
           keywords_he: ["שינוע מהיר", "משלוח אקספרס", "לשלם על הובלה מהירה"],
           deltas: { schedule: 3, cash: -4 },
           evidence_he: "בחר לשלם עבור שינוע מהיר כדי לעמוד בלוח הזמנים.",
-          criteriaSignals: { realism: 3 },
+          criteriaSignals: { realism: 3, financial_awareness: 2 },
         },
       ],
     },
@@ -88,6 +88,11 @@ const managerScenario: Scenario = {
       event_he:
         "עדכון חדש\n\nספק מרכזי נוסף מדווח על עיכוב בלתי צפוי, וצוות הרכש מבקש הכוונה דחופה לגבי איך להמשיך.",
       constraints_he: ["חלון החלטה של 24 שעות", "מידע חלקי על יכולת הספק החלופי"],
+      availableIntel: [
+        { label_he: "אישור בכתב מהספק על מועד המשלוח הבא", cost: 2, accuracy: 85 },
+        { label_he: "בדיקת מלאי חלופי אצל מפיץ משני", cost: 1, accuracy: 70 },
+        { label_he: "הערכת עלות פיצוי ללקוח במקרה של איחור", cost: 2, accuracy: 80 },
+      ],
       decisionPrompt_he: "מה עכשיו?",
       options: [
         {
@@ -162,7 +167,7 @@ const managerScenario: Scenario = {
           keywords_he: ["להמשיך כרגיל", "לא לשנות כלום", "להתקדם כמתוכנן"],
           deltas: { quality: -2 },
           evidence_he: "בחר להמשיך לפי התוכנית הקיימת ללא התאמה לעומס שדווח.",
-          criteriaSignals: { realism: 2 },
+          criteriaSignals: { realism: 2, workload_management: 1 },
         },
       ],
     },
@@ -187,7 +192,7 @@ const managerScenario: Scenario = {
           keywords_he: ["להציג בחיוב", "לא להזכיר בעיות", "עדכון אופטימי"],
           deltas: { reputation: -1 },
           evidence_he: "התמקד בהיבטים החיוביים של האירוע מול הלקוח וההנהלה.",
-          criteriaSignals: {},
+          criteriaSignals: { communication: 1, realism: 1 },
         },
         {
           key: "document_lessons_learned",
@@ -245,6 +250,8 @@ const vpScenario: Scenario = {
           deltas: { schedule: 3, cash: -3 },
           evidence_he: "הפעיל מסלול ספק משני שהוגדר מראש לתרחיש כזה.",
           criteriaSignals: { realism: 4, diagnosis_before_action: 3 },
+          nextEvent_he:
+            "עדכון חדש\n\nהספק המשני אישר זמינות, אך בתוספת עלות של 22% ובדרישה להתחייבות לשנה קדימה. הרכש מבקש את אישורכם לפני חתימה.",
         },
         {
           key: "brief_board_early",
@@ -252,7 +259,7 @@ const vpScenario: Scenario = {
           keywords_he: ["לעדכן דירקטוריון", "תדרוך הנהלה", "שקיפות כלפי הדירקטוריון"],
           deltas: { reputation: 2 },
           evidence_he: "בחר לתדרך את הדירקטוריון מוקדם ובאופן שקוף, לפני שהתמונה הייתה מלאה.",
-          criteriaSignals: { communication: 5 },
+          criteriaSignals: { communication: 5, knowing_when_to_stop: 3 },
         },
         {
           key: "delay_decision_pending_data",
@@ -260,7 +267,9 @@ const vpScenario: Scenario = {
           keywords_he: ["להמתין למידע נוסף", "לא להחליט עדיין", "לחכות לנתונים"],
           deltas: { schedule: -2 },
           evidence_he: "בחר להמתין לנתונים נוספים לפני קבלת החלטה מחייבת.",
-          criteriaSignals: { knowing_when_to_stop: 3 },
+          criteriaSignals: { knowing_when_to_stop: 3, information_acquisition: 3 },
+          nextEvent_he:
+            "עדכון חדש\n\nבזמן שהמתנתם לנתונים, הספק הקצה את הקיבולת הפנויה שלו ללקוח אחר. הנתונים שביקשתם הגיעו — והם כבר מתארים מצב גרוע יותר מזה שעליו נשאלתם.",
         },
       ],
     },
@@ -271,6 +280,11 @@ const vpScenario: Scenario = {
       event_he:
         "עדכון חדש\n\nהספק האסטרטגי מודיע כעת שהעיכוב צפוי להימשך שבועיים נוספים מעבר להערכה הראשונית, וגורם ל-40% מהיקף הרכיב הקריטי.",
       constraints_he: ["לחץ להתחייבות כתובה מול לקוח בין-לאומי", "אתר ייצור אחד חשוף משמעותית יותר"],
+      availableIntel: [
+        { label_he: "ניתוח חשיפה מפורט לכל אחד משני האתרים", cost: 3, accuracy: 90 },
+        { label_he: "בדיקת ההיסטוריה החוזית מול הלקוח האסטרטגי", cost: 2, accuracy: 95 },
+        { label_he: "סקר זמינות קיבולת אצל ספקים משניים", cost: 2, accuracy: 65 },
+      ],
       decisionPrompt_he: "מה הייתם עושים עכשיו?",
       options: [
         {
@@ -288,6 +302,8 @@ const vpScenario: Scenario = {
           deltas: { reputation: 3 },
           evidence_he: "מסר ללקוח התחייבות מפורשת עם הסתייגות מפורשת לגבי הסיכון הנותר.",
           criteriaSignals: { communication: 5, realism: 4 },
+          nextEvent_he:
+            "עדכון חדש\n\nהלקוח קיבל את ההתחייבות המותנית, ומבקש נקודות בקרה שבועיות ואדם אחד מוגדר מולו. הצוות שלכם כבר עמוס.",
         },
         {
           key: "unconditional_commitment_to_client",
@@ -295,7 +311,9 @@ const vpScenario: Scenario = {
           keywords_he: ["התחייבות מלאה", "לאשר תאריך סופי", "הבטחה ללא תנאי"],
           deltas: { reputation: -3, schedule: -1 },
           evidence_he: "התחייב ללקוח באופן מלא וללא הסתייגות, בטרם התבררה מלוא התמונה.",
-          criteriaSignals: {},
+          criteriaSignals: { realism: 1, communication: 2, diagnosis_before_action: 1 },
+          nextEvent_he:
+            "עדכון חדש\n\nהלקוח שלח את ההתחייבות שנתתם להנהלה שלו והפיץ אותה פנימית כתאריך מאושר. שני האתרים מדווחים שהתאריך הזה אינו בר-השגה בתנאים הנוכחיים.",
         },
         {
           key: "emergency_capacity_purchase",
@@ -337,7 +355,9 @@ const vpScenario: Scenario = {
           keywords_he: ["לרכז החלטות", "לא להאציל", "כל ההחלטות דרכי"],
           deltas: { quality: -1 },
           evidence_he: "בחר לשמור את כל ההחלטות במרכז, ללא האצלה למנהלי האתרים.",
-          criteriaSignals: {},
+          criteriaSignals: { workload_management: 1, knowledge_protection: 1, communication: 2 },
+          nextEvent_he:
+            "עדכון חדש\n\nשני מנהלי האתרים ביקשו פגישה משותפת. אחד מהם ציין שהוא ממתין לאישורכם על שלוש החלטות תפעוליות, ובינתיים הקו עומד.",
         },
         {
           key: "document_decision_rationale",
@@ -370,7 +390,7 @@ const vpScenario: Scenario = {
           keywords_he: ["להציג כקטן", "למזער את הדיווח", "לא להדגיש את ההשפעה"],
           deltas: { reputation: -2 },
           evidence_he: "בחר להציג את ההשפעה כמינימלית מול הדירקטוריון, מעבר למה שהנתונים תמכו בו.",
-          criteriaSignals: {},
+          criteriaSignals: { communication: 1, realism: 1 },
         },
         {
           key: "propose_structural_change",

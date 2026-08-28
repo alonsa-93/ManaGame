@@ -54,7 +54,7 @@ const managerScenario: Scenario = {
           keywords_he: ["לתת הנחה מיד", "לאשר את ההנחה שביקשו", "להסכים להנחה גבוהה"],
           deltas: { discount_given: 20, quota_attainment: 5, customer_relationship: 1 },
           evidence_he: "אישר הנחה חדה מייד עם קבלת האיום, ללא בדיקה או משא ומתן מקדים.",
-          criteriaSignals: { realism: 1 },
+          criteriaSignals: { realism: 1, financial_awareness: 1, diagnosis_before_action: 1 },
         },
         {
           key: "qualify_new_deal_before_forecasting",
@@ -78,7 +78,7 @@ const managerScenario: Scenario = {
           keywords_he: ["להכניס לתחזית כבר עכשיו", "לספור את העסקה ביעד", "לדווח על העסקה כסגורה כמעט"],
           deltas: { pipeline_coverage: 15, quota_attainment: 4 },
           evidence_he: "שילב את העסקה החדשה בתחזית הרבעון למרות שלא עברה הליך הכשרה.",
-          criteriaSignals: {},
+          criteriaSignals: { financial_awareness: 1, realism: 1, diagnosis_before_action: 2 },
         },
       ],
     },
@@ -89,6 +89,11 @@ const managerScenario: Scenario = {
       event_he:
         "עדכון חדש\n\nהלקוח המרכזי הודיע שהוא מוכן לחתום להארכה, אך רק אם ההנחה תחול גם על החידוש הבא בעוד שנה. במקביל, התברר שלליד החדש אין עדיין תקציב מאושר, אבל יש תמיכה חזקה מצד משתמש בכיר אצל הלקוח הפוטנציאלי.",
       constraints_he: ["בקשה להנחה רב-שנתית", "אין עדיין תקציב מאושר לעסקה החדשה"],
+      availableIntel: [
+        { label_he: "בדיקת רווחיות בפועל של הלקוח לאורך שלוש שנים", cost: 2, accuracy: 90 },
+        { label_he: "מודיעין תחרותי על ההצעה שהלקוח קיבל", cost: 3, accuracy: 60 },
+        { label_he: "סקירת שלב ההכשרה האמיתי של העסקה החדשה", cost: 1, accuracy: 85 },
+      ],
       decisionPrompt_he: "מה עכשיו?",
       options: [
         {
@@ -107,7 +112,7 @@ const managerScenario: Scenario = {
           keywords_he: ["לאשר הנחה רב שנתית", "להסכים לתנאי הלקוח", "לחתום על ההארכה כמבוקש"],
           deltas: { discount_given: 15, quota_attainment: 6, customer_relationship: 2 },
           evidence_he: "אישר הנחה רב-שנתית כפי שהלקוח דרש, ללא בחינת חלופות.",
-          criteriaSignals: {},
+          criteriaSignals: { financial_awareness: 1, prioritization: 1, realism: 2 },
         },
         {
           key: "identify_economic_buyer_new_deal",
@@ -123,7 +128,7 @@ const managerScenario: Scenario = {
           keywords_he: ["לסרב להנחה", "לא להיכנע לדרישה", "לעמוד על המחיר"],
           deltas: { customer_relationship: -4, quota_attainment: -3 },
           evidence_he: "סירב לחלוטין לדרישת ההנחה הרב-שנתית מבלי להציע חלופה.",
-          criteriaSignals: { knowing_when_to_stop: 2 },
+          criteriaSignals: { knowing_when_to_stop: 2, prioritization: 2, financial_awareness: 3 },
         },
       ],
     },
@@ -165,7 +170,7 @@ const managerScenario: Scenario = {
           keywords_he: ["להמשיך כרגיל", "לא לשנות חלוקת עבודה", "להתקדם כמתוכנן"],
           deltas: { customer_relationship: -2 },
           evidence_he: "בחר להמשיך לפי חלוקת העבודה הקיימת ללא התאמה לעומס שדווח.",
-          criteriaSignals: { realism: 2 },
+          criteriaSignals: { realism: 2, workload_management: 1 },
         },
       ],
     },
@@ -190,7 +195,7 @@ const managerScenario: Scenario = {
           keywords_he: ["להציג תחזית מנופחת", "לדווח באופטימיות יתר", "להסתיר סיכונים בתחזית"],
           deltas: { quota_attainment: 3 },
           evidence_he: "הציג תחזית אופטימית מעבר למה שהנתונים תמכו בו.",
-          criteriaSignals: {},
+          criteriaSignals: { communication: 1, realism: 1 },
         },
         {
           key: "document_quarter_lessons",
@@ -249,7 +254,7 @@ const vpScenario: Scenario = {
           keywords_he: ["הנחת שימור מקדימה", "להציע הנחה לפני שמבקשים", "לפתות לפני השיחה"],
           deltas: { discount_given: 18, customer_relationship: 2 },
           evidence_he: "הציע הנחת שימור משמעותית עוד לפני שהתקיימה שיחה עם הלקוח לבירור הסיבה האמיתית.",
-          criteriaSignals: {},
+          criteriaSignals: { diagnosis_before_action: 1, information_acquisition: 1, financial_awareness: 1 },
         },
         {
           key: "brief_board_early_sales",
@@ -257,7 +262,7 @@ const vpScenario: Scenario = {
           keywords_he: ["לעדכן דירקטוריון מראש", "תדרוך מוקדם על סיכון לקוח", "שקיפות כלפי הדירקטוריון"],
           deltas: { customer_relationship: 1 },
           evidence_he: "בחר לתדרך את הדירקטוריון מוקדם ובאופן שקוף על סיכון האובדן, לפני שהתמונה הייתה מלאה.",
-          criteriaSignals: { communication: 5 },
+          criteriaSignals: { communication: 5, knowing_when_to_stop: 3 },
         },
         {
           key: "delay_pricing_rollout",
@@ -276,6 +281,11 @@ const vpScenario: Scenario = {
       event_he:
         "עדכון חדש\n\nהלקוח מבהיר שהוא אכן קיבל הצעת מחיר ממתחרה, נמוכה ב-15%, ומבקש תגובה תוך שבוע. במקביל, שלושה נציגי מכירות בכירים מבקשים הבהרה דחופה על מודל התמחור לפני שהם ממשיכים לסגור עסקאות.",
       constraints_he: ["לחץ להתחייבות מחיר מול לקוח אסטרטגי", "אי-ודאות בשטח סביב תמחור"],
+      availableIntel: [
+        { label_he: "בדיקת סיבת העזיבה האמיתית מול אנשי קשר בלקוח", cost: 3, accuracy: 70 },
+        { label_he: "ניתוח השפעת מודל התמחור החדש על צנרת המכירות", cost: 2, accuracy: 85 },
+        { label_he: "הערכת סיכון עזיבה של נציגי המכירות הבכירים", cost: 2, accuracy: 65 },
+      ],
       decisionPrompt_he: "מה הייתם עושים עכשיו?",
       options: [
         {
@@ -292,7 +302,7 @@ const vpScenario: Scenario = {
           keywords_he: ["להשוות מחיר מתחרה", "לתת הנחה זהה למתחרה", "להתחייב למחיר ללא תנאי"],
           deltas: { discount_given: 15, quota_attainment: -2 },
           evidence_he: "התאים את מחיר המתחרה באופן מלא וללא תנאי, ללא בחינת חלופות.",
-          criteriaSignals: {},
+          criteriaSignals: { realism: 1, communication: 2, diagnosis_before_action: 1 },
         },
         {
           key: "clarify_pricing_model_to_field",
@@ -308,7 +318,7 @@ const vpScenario: Scenario = {
           keywords_he: ["להעביר למנכ\"ל בלי הכנה", "לתת למנכ\"ל להוביל לבד", "פגישה ללא תיאום מראש"],
           deltas: { customer_relationship: -3 },
           evidence_he: "העביר את הפגישה עם הלקוח למנכ\"ל מבלי לתאם עמו מראש עמדה ונתונים.",
-          criteriaSignals: {},
+          criteriaSignals: { communication: 1, prioritization: 2, diagnosis_before_action: 2 },
         },
       ],
     },
@@ -342,7 +352,7 @@ const vpScenario: Scenario = {
           keywords_he: ["לרכז החלטות תמחור", "לא להאציל סמכות", "כל ההחלטות דרכי"],
           deltas: { customer_relationship: -1 },
           evidence_he: "בחר לשמור את כל החלטות התמחור במרכז, ללא האצלה למנהלי האזורים.",
-          criteriaSignals: {},
+          criteriaSignals: { workload_management: 1, knowledge_protection: 1, communication: 2 },
         },
         {
           key: "document_decision_rationale_sales",
@@ -375,7 +385,7 @@ const vpScenario: Scenario = {
           keywords_he: ["להציג כקטן", "למזער את הדיווח", "לא להדגיש את הסיכון"],
           deltas: { customer_relationship: -2 },
           evidence_he: "בחר להציג את הסיכון באובדן הלקוח כמינימלי מול הדירקטוריון, מעבר למה שהנתונים תמכו בו.",
-          criteriaSignals: {},
+          criteriaSignals: { communication: 1, realism: 1 },
         },
         {
           key: "propose_strategic_account_program",

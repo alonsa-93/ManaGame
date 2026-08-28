@@ -199,16 +199,13 @@ warm instance and is a speed bump rather than a guarantee until a shared store b
 - Fixed 9-criterion rubric (`lib/scenario-schema.ts`, `CRITERIA`) shared across every domain —
   this is what keeps cross-domain evidence, reports and (future) comparisons apples-to-apples
   without a bespoke rubric per scenario.
-- **Known content gap**: run `npm run lint:content`. It walks every path through every scenario
-  (exhaustively — one option per turn) and reports that all 20 scenarios have at least one
-  candidate path accumulating fewer than 3 distinct measured criteria, which `aggregator.ts`
-  requires for a non-null process score. In 9 of the 20 the worst path measures *zero* criteria,
-  and 74 of 331 options (22.4%) carry no `criteriaSignals` at all. That worst path tends to be
-  exactly the "spin/centralize/minimize-disclosure" pattern you'd most want to be able to score.
-  Fixing it means adding `criteriaSignals` to specific options across `content/scenarios/*.ts` —
-  a content-authoring task, not a code fix; not done in this pass. Once it is, `npm run
-  lint:content -- --strict` exits non-zero while any scenario still has an unscoreable path, so
-  it works as the completion gate.
+- **Scenario content is gated, not assumed.** `npm run lint:content` walks every path through
+  every scenario exhaustively and reports criteria coverage; `--strict` exits non-zero if any
+  scenario still has a path the engine cannot score. `content/scenarios/coverage.test.ts` enforces
+  the same in `npm test`, plus three mechanics rules that had all been silently violated: no KPI
+  may be shown to a candidate without some option moving it, every scenario must have at least one
+  option that changes what happens next, and intel must be purchasable on more than the opening
+  turn. All four gates pass.
 - `scripts/smoke-test.mjs` drives the deterministic composer flow (`DecisionFlow`) specifically —
   it will fail if it runs somewhere `ANTHROPIC_API_KEY` is set, since `/turn` then renders the
   conversational `AgentChatFlow` instead. Not yet updated to detect and exercise both flows.

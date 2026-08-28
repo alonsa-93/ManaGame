@@ -59,7 +59,7 @@ const managerScenario: Scenario = {
           keywords_he: ["לקבל את העיכוב", "לאשר את לוח הזמנים החדש", "להסתמך על הספק בלבד"],
           deltas: { schedule: -3, safety_margin: 1 },
           evidence_he: "קיבל את לוח הזמנים המתוקן של הספק מבלי לבחון באופן עצמאי את שורש הכשל.",
-          criteriaSignals: {},
+          criteriaSignals: { diagnosis_before_action: 1, prioritization: 1, realism: 2 },
         },
         {
           key: "activate_qualified_backup_supplier",
@@ -75,7 +75,7 @@ const managerScenario: Scenario = {
           keywords_he: ["לדחוס לוח זמנים", "ללחוץ על הספק", "לדרוש זירוז"],
           deltas: { schedule: 2, safety_margin: -3 },
           evidence_he: "דרש מהספק לקצר את משך תהליך התיקון וההסמכה החוזרת של הרכיב.",
-          criteriaSignals: {},
+          criteriaSignals: { realism: 1, prioritization: 2, diagnosis_before_action: 2 },
         },
         {
           key: "notify_customer_early",
@@ -94,6 +94,11 @@ const managerScenario: Scenario = {
       event_he:
         "עדכון חדש\n\nהספק מציע שני מסלולים: תיקון מלא של חומר האיטום שיוסיף כארבעה שבועות ללוח הזמנים, או פתרון ביניים זמני שמאפשר עמידה במועד המקורי אך מצמצם את מרווח הבטיחות התרמי ב-15 נקודות אחוז עד להשלמת התיקון המלא בשלב מאוחר יותר.",
       constraints_he: ["חלון החלטה קצר לפני שליחת עדכון רשמי ללקוח", "מידע חלקי לגבי ההשפעה ארוכת הטווח של הפתרון הזמני"],
+      availableIntel: [
+        { label_he: "סקירת תיעוד ההסמכה של התיקון שהספק מציע", cost: 2, accuracy: 90 },
+        { label_he: "הערכת השפעת התיקון על יתר שלבי הבדיקות", cost: 3, accuracy: 80 },
+        { label_he: "בדיקת ביצועי הספק בתוכניות קודמות", cost: 1, accuracy: 70 },
+      ],
       decisionPrompt_he: "איזה מסלול הייתם בוחרים?",
       options: [
         {
@@ -120,7 +125,7 @@ const managerScenario: Scenario = {
           keywords_he: ["לאשר פתרון זמני", "לקבל את המסלול הקצר", "להתקדם כמו שהספק מציע"],
           deltas: { schedule: 3, safety_margin: -5 },
           evidence_he: "אימץ את הפתרון הזמני של הספק כלשונו, ללא תוכנית ניטור נוספת מטעם התוכנית.",
-          criteriaSignals: {},
+          criteriaSignals: { diagnosis_before_action: 2, information_acquisition: 1, realism: 1 },
         },
         {
           key: "escalate_decision_to_director",
@@ -170,7 +175,7 @@ const managerScenario: Scenario = {
           keywords_he: ["להמשיך כרגיל", "לא לשנות הקצאה", "להתקדם כמתוכנן"],
           deltas: { safety_margin: -2 },
           evidence_he: "בחר להמשיך לפי ההקצאה הקיימת ללא התאמה לעומס ולסימני השחיקה שדווחו.",
-          criteriaSignals: {},
+          criteriaSignals: { realism: 2, workload_management: 1 },
         },
       ],
     },
@@ -195,7 +200,7 @@ const managerScenario: Scenario = {
           keywords_he: ["להציג ביטחון גבוה", "לא להזכיר אי-ודאות", "להרגיע את הלקוח"],
           deltas: { stakeholder_trust: -2 },
           evidence_he: "הציג ללקוח רמת ביטחון גבוהה מזו שהנתונים שבידיו תמכו בה בפועל.",
-          criteriaSignals: {},
+          criteriaSignals: { communication: 0, realism: 0 },
         },
         {
           key: "document_lessons_for_future_programs",
@@ -259,7 +264,7 @@ const vpScenario: Scenario = {
           keywords_he: ["להמשיך כמתוכנן", "לא לעכב את אבן הדרך", "להתקדם בלוח הזמנים המקורי"],
           deltas: { schedule: 3, safety_margin: -4 },
           evidence_he: "בחר להמשיך לקראת אבן הדרך כמתוכנן, בטרם התבררה מהות החריגה שהתגלתה בבדיקות.",
-          criteriaSignals: {},
+          criteriaSignals: { diagnosis_before_action: 1, knowing_when_to_stop: 1, realism: 1 },
         },
         {
           key: "commission_independent_lab_review",
@@ -275,7 +280,7 @@ const vpScenario: Scenario = {
           keywords_he: ["לעדכן דירקטוריון", "לעדכן גוף פיקוח", "שקיפות מוקדמת מול רגולציה"],
           deltas: { stakeholder_trust: 2 },
           evidence_he: "בחר לתדרך את הדירקטוריון וגוף הפיקוח התקציבי מוקדם ובאופן שקוף, בטרם התבררה מלוא התמונה.",
-          criteriaSignals: { communication: 4, realism: 2 },
+          criteriaSignals: { communication: 5, knowing_when_to_stop: 3, realism: 4 },
         },
         {
           key: "delay_all_action_pending_full_data",
@@ -283,7 +288,7 @@ const vpScenario: Scenario = {
           keywords_he: ["לעצור הכול עד לנתונים", "לא לפעול בלי מידע מלא", "להמתין לתמונה שלמה"],
           deltas: { schedule: -2 },
           evidence_he: "בחר לעצור כל פעולה נוספת עד לקבלת תמונת נתונים מלאה, ולא פעל על בסיס המידע החלקי הקיים.",
-          criteriaSignals: { knowing_when_to_stop: 2 },
+          criteriaSignals: { knowing_when_to_stop: 2, information_acquisition: 2 },
         },
       ],
     },
@@ -294,6 +299,11 @@ const vpScenario: Scenario = {
       event_he:
         "עדכון חדש\n\nהמידע הנוסף מצביע על כך שהחריגה מוגבלת לאצווה ייצור מסוימת של הרכיב, ולא לתכן כולו — אך אימות מלא של המסקנה הזו ידרוש עוד כשלושה שבועות של בדיקות ממוקדות, זמן שאינו קיים לפני אבן הדרך המתוכננת.",
       constraints_he: ["לחץ להצהרה רשמית ללקוח לפני אימות מלא", "חשיפה תקציבית לא ודאית", "זמן אימות נדרש חורג ממועד אבן הדרך"],
+      availableIntel: [
+        { label_he: "הערכת סבירות עמידה באבן הדרך מצוות בלתי תלוי", cost: 3, accuracy: 75 },
+        { label_he: "ניתוח החשיפה הכספית בכל אחד מתרחישי העיכוב", cost: 3, accuracy: 85 },
+        { label_he: "סקירת התקדים הרגולטורי לדחיית אבן דרך בתוכנית דומה", cost: 2, accuracy: 80 },
+      ],
       decisionPrompt_he: "מה הייתם עושים עכשיו?",
       options: [
         {
@@ -320,7 +330,7 @@ const vpScenario: Scenario = {
           keywords_he: ["התחייבות מלאה", "לאשר ללא הסתייגות", "להבטיח עמידה מלאה"],
           deltas: { stakeholder_trust: -4, safety_margin: -3 },
           evidence_he: "התחייב ללקוח באופן מלא וללא הסתייגות לעמידה באבן הדרך, בטרם אומתה מסקנת הבדיקות.",
-          criteriaSignals: {},
+          criteriaSignals: { realism: 1, communication: 2, diagnosis_before_action: 1 },
         },
         {
           key: "disclose_budget_exposure_to_oversight",
@@ -370,7 +380,7 @@ const vpScenario: Scenario = {
           keywords_he: ["לבחור בהערכה האופטימית", "ללכת עם ההערכה הנוחה", "לא לבדוק את הפער בין ההערכות"],
           deltas: { safety_margin: -3, schedule: 2 },
           evidence_he: "אימץ את ההערכה האופטימית מבין השתיים מבלי לברר לעומק את מקור הפער ביניהן.",
-          criteriaSignals: {},
+          criteriaSignals: { communication: 1, realism: 1 },
         },
       ],
     },
@@ -395,7 +405,7 @@ const vpScenario: Scenario = {
           keywords_he: ["מסר שונה לכל גורם", "להתאים דיווח לפי קהל", "לספר לכל אחד משהו אחר"],
           deltas: { stakeholder_trust: -3 },
           evidence_he: "בחר להתאים מסרים שונים באופן מהותי לכל אחד מבעלי העניין בנפרד, במקום מצג אחיד.",
-          criteriaSignals: {},
+          criteriaSignals: { communication: 1, realism: 2 },
         },
         {
           key: "propose_program_level_process_change",
