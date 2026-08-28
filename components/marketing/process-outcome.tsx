@@ -45,7 +45,7 @@ export default function ProcessOutcome() {
                       {example.process}
                     </span>
                   </div>
-                  <Progress value={example.process} className="mt-2" />
+                  <Progress value={example.process} className="mt-2" label="ציון תהליך" />
                 </div>
 
                 <div>
@@ -55,7 +55,7 @@ export default function ProcessOutcome() {
                       {example.outcome}
                     </span>
                   </div>
-                  <Progress value={example.outcome} className="mt-2" />
+                  <Progress value={example.outcome} className="mt-2" label="ציון תוצאה" />
                 </div>
               </div>
 

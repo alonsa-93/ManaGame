@@ -109,14 +109,14 @@ export default async function ReportPage({ params }: { params: Promise<{ session
                     {report?.processScore ?? "—"} / 100
                   </span>
                 </div>
-                <Progress value={report?.processScore ?? 0} />
+                <Progress value={report?.processScore ?? 0} label="ציון תהליך" />
               </div>
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm text-mg-text">ציון תוצאה</span>
                   <span className="text-sm font-semibold text-mg-text ltr-num">{report?.outcomeScore ?? 0} / 100</span>
                 </div>
-                <Progress value={report?.outcomeScore ?? 0} />
+                <Progress value={report?.outcomeScore ?? 0} label="ציון תוצאה" />
               </div>
             </div>
             <p className="text-sm text-mg-text-secondary leading-relaxed mt-5">

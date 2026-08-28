@@ -287,7 +287,7 @@ const vpScenario: Scenario = {
           key: "continue_full_production_pending_data",
           label_he: "המשך ייצור מלא עד לקבלת תוצאות סופיות",
           keywords_he: ["להמשיך ייצור מלא", "לא לעצור עד שיש ודאות", "המשך כרגיל עד לנתונים"],
-          deltas: { revenue_exposure: -5, yield_rate: -2 },
+          deltas: { revenue_exposure: 30, yield_rate: -2 },
           evidence_he: "בחר להמשיך בייצור מלא עד לקבלת תוצאות סופיות, חרף אינדיקציות ראשוניות לסיכון.",
           criteriaSignals: { diagnosis_before_action: 1, realism: 1, knowing_when_to_stop: 1 },
         },

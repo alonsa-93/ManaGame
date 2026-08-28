@@ -89,8 +89,11 @@ export async function submitContact(formData: FormData): Promise<ContactActionRe
   try {
     await notifyMake({
       event: "contact_lead",
-      // These three carry the generic notification shape the existing Make
-      // scenario already maps, so a lead needs no new Make configuration.
+      // These three keep the payload shape the Make scenario's other two
+      // branches already map. The scenario has a matching `contact_lead`
+      // route — without it the webhook fires, the router matches nothing, and
+      // the lead is dropped silently, which is exactly what happened until it
+      // was added.
       sessionId: id,
       scenarioTitle: "פנייה חדשה מהאתר",
       reportUrl: `${siteUrl()}/admin/leads`,

@@ -121,4 +121,50 @@ describe("scenario mechanics", () => {
       .map((s) => s.id);
     expect(shallow).toEqual([]);
   });
+
+  it("has no delta that can never do anything", () => {
+    // The plan's own Phase 2 gate called this "אפס דלתאות בלתי־חוקיות".
+    // A negative delta on a KPI that no earlier turn is able to raise is dead
+    // on arrival: the engine clamps it and the candidate's choice has no
+    // effect. Worse, it hides a sign error — semiconductors-vp-1 rewarded
+    // "continue production despite a risk indication" with *reduced* financial
+    // exposure, and only looked harmless because exposure starts at zero.
+    const dead = scenarios.flatMap((s) => {
+      const byKey = new Map(s.kpis.map((k) => [k.key, k]));
+      return s.turns.flatMap((turn) =>
+        turn.options.flatMap((option) =>
+          Object.entries(option.deltas ?? {})
+            .filter(([key, delta]) => {
+              const def = byKey.get(key);
+              if (!def || delta >= 0) return false;
+              // Best case value on arrival: every earlier turn picks its most
+              // positive delta for this KPI.
+              const reachable = s.turns
+                .filter((t) => t.index < turn.index)
+                .reduce(
+                  (value, t) => Math.min(def.max, value + Math.max(0, ...t.options.map((o) => o.deltas?.[key] ?? 0))),
+                  def.start
+                );
+              return reachable <= def.min;
+            })
+            .map(([key, delta]) => `${s.id} turn ${turn.index}/${option.key}: ${key}=${delta}`)
+        )
+      );
+    });
+    expect(dead).toEqual([]);
+  });
+
+  it("only moves KPIs the scenario actually declares", () => {
+    const unknown = scenarios.flatMap((s) => {
+      const declared = new Set(s.kpis.map((k) => k.key));
+      return s.turns.flatMap((t) =>
+        t.options.flatMap((o) =>
+          Object.keys(o.deltas ?? {})
+            .filter((k) => !declared.has(k))
+            .map((k) => `${s.id}/${o.key}: ${k}`)
+        )
+      );
+    });
+    expect(unknown).toEqual([]);
+  });
 });

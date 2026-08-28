@@ -1,9 +1,24 @@
-export function Progress({ value, className }: { value: number; className?: string }) {
+export function Progress({
+  value,
+  className,
+  label,
+}: {
+  value: number;
+  className?: string;
+  /**
+   * What this bar is measuring. Required in spirit: an ARIA progressbar with
+   * no accessible name is announced as an unlabelled percentage, which tells a
+   * screen-reader user nothing about what moved. Caught by Lighthouse's
+   * aria-progressbar-name audit on every KPI bar on the homepage.
+   */
+  label?: string;
+}) {
   const clamped = Math.max(0, Math.min(100, value));
   return (
     <div
       className={`h-1.5 w-full overflow-hidden rounded-full bg-black/[.06] ${className ?? ""}`}
       role="progressbar"
+      aria-label={label ?? "התקדמות"}
       aria-valuenow={clamped}
       aria-valuemin={0}
       aria-valuemax={100}
