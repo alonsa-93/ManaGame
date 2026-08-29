@@ -16,6 +16,7 @@ function rowToSession(row: Record<string, unknown>): SessionRecord {
     scenarioId: row.scenario_id as string,
     candidateName: (row.candidate_name as string) ?? undefined,
     candidateEmail: (row.candidate_email as string) ?? undefined,
+    externalRef: (row.external_ref as string) ?? undefined,
     status: row.status as SessionRecord["status"],
     seed: row.seed as string,
     currentTurn: row.current_turn as number,
@@ -52,13 +53,14 @@ export class PgStore implements Store {
   async createSession(input: Omit<SessionRecord, "createdAt" | "status"> & { status?: SessionRecord["status"] }) {
     const status = input.status ?? "not_started";
     const { rows } = await this.pool().query(
-      `insert into sessions (id, scenario_id, candidate_name, candidate_email, status, seed, current_turn, kpi_state, kpi_history, turn_evidence, consent_at)
-       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) returning *`,
+      `insert into sessions (id, scenario_id, candidate_name, candidate_email, external_ref, status, seed, current_turn, kpi_state, kpi_history, turn_evidence, consent_at)
+       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) returning *`,
       [
         input.id,
         input.scenarioId,
         input.candidateName ?? null,
         input.candidateEmail ?? null,
+        input.externalRef ?? null,
         status,
         input.seed,
         input.currentTurn,

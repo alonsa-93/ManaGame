@@ -11,7 +11,10 @@ import { notifyMake, siteUrl } from "@/lib/integrations/make-webhook";
 import { getStore, hasDatabase } from "@/lib/store";
 import type { SessionRecord, TurnEvidenceEntry } from "@/lib/store/types";
 
-export function startSession(scenario: Scenario, input: { candidateName?: string; candidateEmail?: string }) {
+export function startSession(
+  scenario: Scenario,
+  input: { candidateName?: string; candidateEmail?: string; externalRef?: string }
+) {
   const store = getStore();
   const seed = Math.floor(Math.random() * 900000 + 100000).toString();
   return store.createSession({
@@ -19,6 +22,7 @@ export function startSession(scenario: Scenario, input: { candidateName?: string
     scenarioId: scenario.id,
     candidateName: input.candidateName,
     candidateEmail: input.candidateEmail,
+    externalRef: input.externalRef,
     seed,
     currentTurn: 1,
     kpiState: initialKpiState(scenario.kpis),

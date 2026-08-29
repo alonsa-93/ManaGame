@@ -29,6 +29,8 @@ export interface ApiSessionSummary {
   scenarioTitle: string;
   roleLevel: string;
   candidateName: string | null;
+  /** The caller's own correlation id, set at creation via POST — see route.ts. */
+  externalRef: string | null;
   status: SessionRecord["status"];
   createdAt: string;
   completedAt: string | null;
@@ -61,6 +63,7 @@ export function toSessionSummary(
     scenarioTitle: scenario?.title_he ?? session.scenarioId,
     roleLevel: scenario?.roleLevel ?? "unknown",
     candidateName: session.candidateName ?? null,
+    externalRef: session.externalRef ?? null,
     status: session.status,
     createdAt: session.createdAt,
     completedAt: session.completedAt ?? null,

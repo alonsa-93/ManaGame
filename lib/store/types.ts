@@ -23,6 +23,13 @@ export interface SessionRecord {
   scenarioId: string;
   candidateName?: string;
   candidateEmail?: string;
+  /**
+   * An external system's own identifier for this candidate/application —
+   * set once, at creation, by the integration API (lib/api/). Lets an ATS
+   * correlate the session it created back to its own record without having
+   * to store ManaGame's session id as the only link.
+   */
+  externalRef?: string;
   status: SessionStatus;
   seed: string;
   currentTurn: number;

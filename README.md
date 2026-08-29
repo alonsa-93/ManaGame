@@ -186,14 +186,19 @@ warm instance and is a speed bump rather than a guarantee until a shared store b
 
 ### Integration API (optional, for an ATS)
 
-Set `ATS_API_TOKEN` to enable a read-only JSON API at `/api/v1/sessions`. It is
-**off**, not merely unauthenticated, when no token is set — a deployment with a blank env
-var cannot accidentally expose candidate data. It deliberately never returns the candidate's
-free text, the agent transcript, their email, or the scenario's option keys; an integration
-that copies those into a third-party system moves that exposure somewhere this codebase
-can't see. `docs/integration-api.md` has the full contract, including the two things a
-consumer must handle: a null `processScore` means "not enough was measured", not a low
-score, and `needsHumanReview` is a request for a person to look, not a negative signal.
+Set `ATS_API_TOKEN` to enable a JSON API at `/api/v1/sessions`: `POST` sends a candidate to a
+simulation and returns their play link; `GET` (list, or by id) pulls the report back —
+"send a candidate, get a report back" end to end, verified against the running app, not
+just unit-tested. It is **off**, not merely unauthenticated, when no token is set — a
+deployment with a blank env var cannot accidentally expose candidate data or let anyone spin
+up sessions. It deliberately never returns the candidate's free text, the agent transcript,
+their email, or the scenario's option keys; an integration that copies those into a
+third-party system moves that exposure somewhere this codebase can't see.
+`docs/integration-api.md` has the full contract, including the three things a consumer must
+handle: a null `processScore` means "not enough was measured" and not a low score,
+`needsHumanReview` is a request for a person to look and not a negative signal, and
+`durableDelivery: false` on creation means no database is connected — session delivery to
+the candidate isn't reliable yet, so don't point this at real candidates until it's `true`.
 
 ### Benchmarks
 

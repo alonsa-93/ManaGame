@@ -28,6 +28,9 @@ create index if not exists sessions_created_idx on sessions(created_at desc);
 -- existed — `create table if not exists` above is a no-op on an existing
 -- table, so the column needs its own guarded add.
 alter table sessions add column if not exists turn_evidence jsonb not null default '[]';
+-- Same reasoning, for the integration API's correlation id (lib/api/serialize.ts).
+alter table sessions add column if not exists external_ref text;
+create index if not exists sessions_external_ref_idx on sessions(external_ref) where external_ref is not null;
 
 create table if not exists decisions (
   id text primary key,

@@ -69,6 +69,7 @@ describe("toSessionSummary", () => {
       scenarioTitle: "עיכוב אספקה",
       roleLevel: "manager",
       candidateName: "דנה כהן",
+      externalRef: null,
       status: "completed",
       createdAt: "2026-08-01T10:00:00.000Z",
       completedAt: "2026-08-01T10:35:00.000Z",
@@ -87,6 +88,15 @@ describe("toSessionSummary", () => {
 
   it("never exposes the candidate's email", () => {
     expect(JSON.stringify(toSessionSummary(session, scenario, report, 0))).not.toContain("dana@example.com");
+  });
+
+  it("passes through the caller's own correlation id when one was set at creation", () => {
+    const withRef = { ...session, externalRef: "ats-app-4471" };
+    expect(toSessionSummary(withRef, scenario, report, 0).externalRef).toBe("ats-app-4471");
+  });
+
+  it("reports no correlation id as null, not undefined — undefined silently vanishes from JSON", () => {
+    expect(toSessionSummary(session, scenario, report, 0).externalRef).toBeNull();
   });
 });
 
