@@ -144,6 +144,8 @@ const managerScenario: Scenario = {
           deltas: { quality: 2 },
           evidence_he: "חילק מחדש את העומס בצוות לאחר שזוהו סימני שחיקה.",
           criteriaSignals: { workload_management: 4, communication: 2 },
+          nextEvent_he:
+            "עדכון חדש\n\nהחלוקה מחדש עבדה: הצוות מגיע רענן למועד האספקה, וכל היעדים המרכזיים בהישג יד. נותר רק לסכם את האירוע.",
         },
         {
           key: "bring_temp_support",
@@ -168,6 +170,8 @@ const managerScenario: Scenario = {
           deltas: { quality: -2 },
           evidence_he: "בחר להמשיך לפי התוכנית הקיימת ללא התאמה לעומס שדווח.",
           criteriaSignals: { realism: 2, workload_management: 1 },
+          nextEvent_he:
+            "עדכון חדש\n\nהעייפות בצוות הובילה לטעות בספירת מלאי שהתגלתה רק הבוקר, ומועד האספקה כעת בסיכון נוסף. יש לתקן את התוכנית תחת לחץ זמן כפול.",
         },
       ],
     },
@@ -366,6 +370,8 @@ const vpScenario: Scenario = {
           deltas: {},
           evidence_he: "התחיל בתיעוד שיטתי של הרציונל מאחורי כל החלטת הסלמה.",
           criteriaSignals: { knowledge_protection: 4, communication: 2 },
+          nextEvent_he:
+            "עדכון חדש\n\nהתיעוד השיטתי מאפשר לדירקטוריון להבין בדיוק איך ולמה כל החלטת הסלמה התקבלה, וזה מקצר משמעותית את דיון הסיכום.",
         },
       ],
     },

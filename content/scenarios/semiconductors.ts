@@ -151,6 +151,8 @@ const managerScenario: Scenario = {
           deltas: { downtime_cost: -5 },
           evidence_he: "חילק מחדש את משמרות הצוות לאחר שזוהו סימני עייפות אצל מהנדסים מרכזיים.",
           criteriaSignals: { workload_management: 4, communication: 2 },
+          nextEvent_he:
+            "עדכון חדש\n\nחלוקת המשמרות מחדש עבדה: הצוות מגיע למשמרת האחרונה עם ריכוז מלא, והחקירה הטכנית מתקדמת ללא תקלות נוספות.",
         },
         {
           key: "bring_temp_engineers",
@@ -175,6 +177,8 @@ const managerScenario: Scenario = {
           deltas: { yield: -1 },
           evidence_he: "בחר להמשיך לפי לוח המשמרות הקיים ללא התאמה לעייפות שדווחה.",
           criteriaSignals: { realism: 2, workload_management: 1 },
+          nextEvent_he:
+            "עדכון חדש\n\nהעומס גבה מחיר: מהנדס מרכזי פספס אינדיקציה חשובה בנתוני האכילה בגלל עייפות, וסוגיה טכנית שהיה אפשר לזהות מוקדם מתגלה רק עכשיו.",
         },
       ],
     },
@@ -359,6 +363,8 @@ const vpScenario: Scenario = {
           deltas: {},
           evidence_he: "חייב תיעוד מיידי ומובנה של כלל הממצאים וההחלטות, כדי שהידע לא יישאר תלוי באדם יחיד.",
           criteriaSignals: { knowledge_protection: 5 },
+          nextEvent_he:
+            "עדכון חדש\n\nהתיעוד המובנה שחייבתם מאפשר לצוות שלם לגבש את ההמלצה הסופית, במקום להסתמך על אדם יחיד שעלול לטעות תחת עומס.",
         },
         {
           key: "bring_in_external_reliability_experts",
@@ -383,6 +389,8 @@ const vpScenario: Scenario = {
           deltas: { line_downtime_days: -1 },
           evidence_he: "ביקש מהמהנדס הבכיר להמשיך ולהוביל את החקירה למרות סימני העומס שדווחו.",
           criteriaSignals: { workload_management: 0, knowledge_protection: 1, realism: 2 },
+          nextEvent_he:
+            "עדכון חדש\n\nהמהנדס הבכיר, תחת עומס מתמשך, פספס פרט קריטי בניתוח ההיסטוריה שרק הוא מכיר — והוא מתגלה רק כעת, בשלב מאוחר מדי לתקן בלי לעכב את ההחלטה.",
         },
       ],
     },

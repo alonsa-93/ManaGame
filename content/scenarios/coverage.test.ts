@@ -154,6 +154,18 @@ describe("scenario mechanics", () => {
     expect(dead).toEqual([]);
   });
 
+it("lets more than one decision per turn change what happens next", () => {
+    // The plan named this gap directly: "רק 38 אירועי ענף על 264 אופציות —
+    // הסימולציה מגיבה מעט מדי לבחירות". A single branching option per
+    // scenario is a fig leaf — every turn but one still plays the same script
+    // regardless of choice. This asserts the floor stays where the content
+    // pass put it, not where a future edit might quietly erode it back to one.
+    const thin = scenarios
+      .filter((s) => s.turns.flatMap((t) => t.options).filter((o) => o.nextEvent_he).length < 2)
+      .map((s) => s.id);
+    expect(thin).toEqual([]);
+  });
+
   it("only moves KPIs the scenario actually declares", () => {
     const unknown = scenarios.flatMap((s) => {
       const declared = new Set(s.kpis.map((k) => k.key));

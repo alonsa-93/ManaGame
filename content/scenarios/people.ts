@@ -168,6 +168,8 @@ const managerScenario: Scenario = {
           deltas: { workload: -10, morale: 3 },
           evidence_he: "ארגן מחדש את חלוקת העבודה וקבע גבולות ברורים לצמצום סיכון השחיקה שדווח.",
           criteriaSignals: { workload_management: 5 },
+          nextEvent_he:
+            "עדכון חדש\n\nהארגון מחדש והגבולות שנקבעו עבדו: העומס בצוות ירד, ואף אחד לא פנה לבקש ימי מחלה דחופים לקראת סוף הרבעון.",
         },
         {
           key: "clarify_roles_after_mediation",
@@ -184,6 +186,8 @@ const managerScenario: Scenario = {
           deltas: { workload: 5, attrition_risk: 3 },
           evidence_he: "בחר להעדיף את המסירה הדחופה על פני טיפול מיידי בסימני העומס שדווחו.",
           criteriaSignals: { workload_management: 0, prioritization: 2, realism: 2 },
+          nextEvent_he:
+            "עדכון חדש\n\nהעדפת המסירה על פני הטיפול בעומס גבתה מחיר: חבר הצוות שדיווח על תשישות ניגש אליכם ומבקש לקחת ימי מחלה החל ממחר, ממש לקראת סוף הרבעון.",
         },
         {
           key: "bring_temp_backfill",
@@ -392,6 +396,8 @@ const vpScenario: Scenario = {
           deltas: {},
           evidence_he: "הפעיל תוכנית דחופה להעברת הידע הקריטי שהוחזק בידי שני מהנדסים בכירים בלבד.",
           criteriaSignals: { knowledge_protection: 5, diagnosis_before_action: 2 },
+          nextEvent_he:
+            "עדכון חדש\n\nתוכנית העברת הידע הדחופה עבדה: גם אם אחד המהנדסים יעזוב, הידע הקריטי כבר אינו תלוי בו בלבד, ואבן הדרך נשארת בהישג יד.",
         },
         {
           key: "rebalance_milestone_scope",
@@ -416,6 +422,8 @@ const vpScenario: Scenario = {
           deltas: { workload: 7, morale: -3 },
           evidence_he: "ביקש מיתר הצוות לספוג עומס נוסף לקראת אפשרות של עזיבה, ללא תגבור נלווה.",
           criteriaSignals: { realism: 2, workload_management: 0 },
+          nextEvent_he:
+            "עדכון חדש\n\nהבקשה מהצוות לספוג את הפער ללא תגבור גבתה מחיר: אחד משני המהנדסים הבכירים החליט לעזוב, בדיוק כשאבן הדרך מתקרבת.",
         },
         {
           key: "escalate_headcount_request",

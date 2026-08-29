@@ -38,6 +38,13 @@ export interface AiUsageSummary {
   since: string | null;
 }
 
+export interface AiUsageDay {
+  /** UTC calendar date, `YYYY-MM-DD`. */
+  date: string;
+  calls: number;
+  estimatedUsd: number;
+}
+
 const MAX_RECORDS = 5000;
 
 // Survives hot reload in dev the same way the memory store does.
@@ -53,10 +60,13 @@ export function costOf(model: string, inputTokens: number, outputTokens: number)
  * Never throws and never blocks: accounting must not be able to fail a
  * candidate's turn. Called with whatever `usage` the SDK returned, which can be
  * absent on some responses.
+ *
+ * `at` is a test seam for exercising aiUsageDaily()'s day-bucketing — real call
+ * sites never pass it, so production timestamps are always the true call time.
  */
-export function recordAiCall(record: Omit<AiCallRecord, "at">): void {
+export function recordAiCall(record: Omit<AiCallRecord, "at"> & { at?: string }): void {
   try {
-    records.push({ ...record, at: new Date().toISOString() });
+    records.push({ ...record, at: record.at ?? new Date().toISOString() });
     if (records.length > MAX_RECORDS) records.splice(0, records.length - MAX_RECORDS);
   } catch {
     // Accounting is never worth an exception on the request path.
@@ -90,6 +100,39 @@ export function aiUsageSummary(): AiUsageSummary {
     byPurpose,
     since: records[0]?.at ?? null,
   };
+}
+
+/**
+ * Daily spend, oldest first, for the trend chart on /admin/system.
+ *
+ * Built from `records` directly rather than from `aiUsageSummary()`'s totals —
+ * a running total has no shape over time, only a day-by-day bucketing does.
+ * Days with zero calls between the first and last recorded day are included
+ * with a zero, so a chart drawn from this never silently skips a gap.
+ */
+export function aiUsageDaily(): AiUsageDay[] {
+  if (records.length === 0) return [];
+
+  const byDay = new Map<string, { calls: number; estimatedUsd: number }>();
+  for (const r of records) {
+    const date = r.at.slice(0, 10); // UTC calendar date from the ISO timestamp.
+    const bucket = byDay.get(date) ?? { calls: 0, estimatedUsd: 0 };
+    bucket.calls += 1;
+    bucket.estimatedUsd += costOf(r.model, r.inputTokens, r.outputTokens);
+    byDay.set(date, bucket);
+  }
+
+  const days = [...byDay.keys()].sort();
+  const first = new Date(`${days[0]}T00:00:00Z`);
+  const last = new Date(`${days[days.length - 1]}T00:00:00Z`);
+
+  const out: AiUsageDay[] = [];
+  for (let d = new Date(first); d <= last; d.setUTCDate(d.getUTCDate() + 1)) {
+    const date = d.toISOString().slice(0, 10);
+    const bucket = byDay.get(date);
+    out.push({ date, calls: bucket?.calls ?? 0, estimatedUsd: bucket?.estimatedUsd ?? 0 });
+  }
+  return out;
 }
 
 /** Test seam. */

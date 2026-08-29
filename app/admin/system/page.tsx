@@ -5,7 +5,10 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AgentPingButton } from "@/components/admin/agent-ping-button";
 import { isAuthEnabled } from "@/lib/auth/admin-session";
-import { aiUsageSummary } from "@/lib/ai-usage";
+import { aiUsageDaily, aiUsageSummary } from "@/lib/ai-usage";
+import { scoreTrend } from "@/lib/engine/score-trend";
+import { ScoreTrendChart } from "@/components/admin/score-trend-chart";
+import { AiCostChart } from "@/components/admin/ai-cost-chart";
 
 // Otherwise this page (env-var/DB status) would be statically prerendered
 // once at build time and never reflect the actual runtime environment.
@@ -26,10 +29,16 @@ export default async function AdminSystemPage() {
   const hasKey = Boolean(process.env.ANTHROPIC_API_KEY);
   const usage = aiUsageSummary();
 
-  const sessions = await getStore().listSessions();
+  const store = getStore();
+  const sessions = await store.listSessions();
   const completed = sessions.filter((s) => s.status === "completed").length;
   const inProgress = sessions.filter((s) => s.status === "in_progress").length;
   const costPerCompleted = completed > 0 ? usage.estimatedUsd / completed : null;
+
+  const completedSessions = sessions.filter((s) => s.status === "completed");
+  const reports = await Promise.all(completedSessions.map((s) => store.getReport(s.id)));
+  const trend = scoreTrend(completedSessions, reports);
+  const dailyCost = aiUsageDaily();
 
   return (
     <div className="max-w-3xl">
@@ -90,6 +99,12 @@ export default async function AdminSystemPage() {
         </div>
       </Card>
 
+      <Card className="p-5 mb-6">
+        <h2 className="text-lg font-semibold text-mg-text mb-1">מגמת ציונים</h2>
+        <p className="text-sm text-mg-text-secondary mb-5">ציון תהליך בכל סימולציה שהושלמה, מהישנה לחדשה.</p>
+        <ScoreTrendChart points={trend} />
+      </Card>
+
       <Card className="p-5">
         <h2 className="text-lg font-semibold text-mg-text mb-1">עלות AI</h2>
         <p className="text-sm text-mg-text-secondary mb-5 leading-relaxed">
@@ -132,6 +147,11 @@ export default async function AdminSystemPage() {
                 </span>
               </p>
             )}
+
+            <div className="mb-6">
+              <h3 className="text-sm font-medium text-mg-text mb-3">עלות יומית</h3>
+              <AiCostChart days={dailyCost} />
+            </div>
 
             <div className="overflow-x-auto">
               <table className="w-full text-sm">

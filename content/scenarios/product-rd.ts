@@ -152,6 +152,8 @@ const managerScenario: Scenario = {
           deltas: {},
           evidence_he: "דאג לתעד את הידע הקריטי על מודול התשלומים לפני יציאת המפתח הבכיר לחופשה.",
           criteriaSignals: { knowledge_protection: 5 },
+          nextEvent_he:
+            "עדכון חדש\n\nהתיעוד שהוכן לפני היציאה לחופשה עבד: כשעלתה שאלה על מודול התשלומים, מפתחת אחרת מהצוות הצליחה לענות עליה תוך דקות.",
         },
         {
           key: "cancel_vacation_request",
@@ -176,6 +178,8 @@ const managerScenario: Scenario = {
           deltas: { morale: -3 },
           evidence_he: "בחר להמשיך לפי התוכנית הקיימת ללא התאמה לעומס ולסיכון בידע שדווחו.",
           criteriaSignals: { realism: 2, workload_management: 1, knowledge_protection: 1 },
+          nextEvent_he:
+            "עדכון חדש\n\nהעומס גבה מחיר: באג נוסף התגלה בבדיקות הרגרסיה בגלל תשומת לב שהתפזרה בין יותר מדי משימות במקביל. מועד ההשקה בסיכון נוסף.",
         },
       ],
     },
@@ -390,6 +394,8 @@ const vpScenario: Scenario = {
           deltas: {},
           evidence_he: "יזם תיעוד שיטתי של הידע הארכיטקטוני שמרוכז אצל מובילת צוות הליבה.",
           criteriaSignals: { knowledge_protection: 5 },
+          nextEvent_he:
+            "עדכון חדש\n\nהתיעוד הארכיטקטוני שיזמתם מאפשר לצוות שלם, לא רק למובילת הליבה, להשתתף בהחלטה הסופית על מפת הדרכים.",
         },
         {
           key: "keep_all_updates_centralized_vp",
@@ -398,6 +404,8 @@ const vpScenario: Scenario = {
           deltas: { morale: -2 },
           evidence_he: "בחר לרכז את כל העדכונים לבעלי העניין דרכו באופן בלעדי, ללא האצלה.",
           criteriaSignals: { workload_management: 1, knowledge_protection: 1, communication: 2 },
+          nextEvent_he:
+            "עדכון חדש\n\nריכוז העדכונים דרככם יצר צוואר בקבוק: שני צוותים קיבלו הנחיות סותרות כי לא הייתה להם גישה ישירה למידע העדכני, ונדרש תיאום מאסיבי לפני המצג לדירקטוריון.",
         },
       ],
     },

@@ -152,6 +152,8 @@ const managerScenario: Scenario = {
           deltas: { margin: -1, customer_satisfaction: 2 },
           evidence_he: "הביא תגבור זמני לסניפים העמוסים לאחר שזוהו סימני עומס אצל הצוות.",
           criteriaSignals: { workload_management: 4 },
+          nextEvent_he:
+            "עדכון חדש\n\nהתגבור לסניפים העמוסים עבד: התורים התקצרו משמעותית, ושביעות הרצון בסניפים המרכזיים יציבה לקראת סוף העונה.",
         },
         {
           key: "clearance_sale_surplus_stores",
@@ -176,6 +178,8 @@ const managerScenario: Scenario = {
           deltas: { customer_satisfaction: -2, sell_through: -2 },
           evidence_he: "בחר להמשיך ללא שינוי בהקצאת כוח האדם או במלאי העודף.",
           criteriaSignals: { realism: 2, workload_management: 1 },
+          nextEvent_he:
+            "עדכון חדש\n\nהעומס גבה מחיר: תור ארוך בסניף עמוס הוביל לתלונת לקוח שהגיעה לרשתות החברתיות, בזמן שמלאי עודף עדיין תקוע בפריפריה.",
         },
       ],
     },
@@ -350,6 +354,8 @@ const vpScenario: Scenario = {
           deltas: { brand_perception: 1 },
           evidence_he: "מסר תדרוך מובנה ואחיד לכל מנהלי האזורים, שכלל את ההקשר המלא מאחורי ההחלטות.",
           criteriaSignals: { communication: 5 },
+          nextEvent_he:
+            "עדכון חדש\n\nהתדרוך המובנה עבד: כל מנהלי האזורים מיישמים את מדיניות המחיר בעקביות, וההנהלה האזורית מדווחת על ירידה בבלבול בשטח.",
         },
         {
           key: "redistribute_merchandising_workload",
@@ -374,6 +380,8 @@ const vpScenario: Scenario = {
           deltas: { brand_perception: -1 },
           evidence_he: "בחר לשמור את כל ההחלטות במרכז, ללא האצלת סמכות למנהלי האזורים.",
           criteriaSignals: { workload_management: 1, knowledge_protection: 1, communication: 2 },
+          nextEvent_he:
+            "עדכון חדש\n\nריכוז ההחלטות במרכז יצר בלבול בשטח: שני אזורים יישמו את מדיניות המחיר בצורה שונה בגלל עיכוב באישור, ותלונות לקוחות על חוסר עקביות מתחילות להצטבר.",
         },
       ],
     },

@@ -147,6 +147,8 @@ const managerScenario: Scenario = {
           deltas: { customer_relationship: 1 },
           evidence_he: "חילק מחדש חלק מתיק הלקוחות בצוות לאחר שזוהו סימני עומס יתר.",
           criteriaSignals: { workload_management: 4, communication: 2 },
+          nextEvent_he:
+            "עדכון חדש\n\nהחלוקה מחדש עבדה: כל תיקי הלקוחות מטופלים, ואף לקוח לא נפל בין הכיסאות לקראת סגירת הרבעון.",
         },
         {
           key: "document_key_account_knowledge",
@@ -171,6 +173,8 @@ const managerScenario: Scenario = {
           deltas: { customer_relationship: -2 },
           evidence_he: "בחר להמשיך לפי חלוקת העבודה הקיימת ללא התאמה לעומס שדווח.",
           criteriaSignals: { realism: 2, workload_management: 1 },
+          nextEvent_he:
+            "עדכון חדש\n\nהעומס גבה מחיר: נציג המכירות הוותיק פספס מעקב קריטי מול לקוח מרכזי בגלל ריבוי משימות, והעסקה בסיכון ממש לפני סגירת הרבעון.",
         },
       ],
     },
@@ -353,6 +357,8 @@ const vpScenario: Scenario = {
           deltas: { customer_relationship: -1 },
           evidence_he: "בחר לשמור את כל החלטות התמחור במרכז, ללא האצלה למנהלי האזורים.",
           criteriaSignals: { workload_management: 1, knowledge_protection: 1, communication: 2 },
+          nextEvent_he:
+            "עדכון חדש\n\nריכוז החלטות התמחור יצר עיכוב: שתי עסקאות אזוריות תקועות בהמתנה לאישורכם, ומנהלי האזורים מתחילים לאבד אמון בתהליך.",
         },
         {
           key: "document_decision_rationale_sales",
@@ -361,6 +367,8 @@ const vpScenario: Scenario = {
           deltas: {},
           evidence_he: "התחיל בתיעוד שיטתי של הרציונל מאחורי החלטות המפתח בתקופת המעבר.",
           criteriaSignals: { knowledge_protection: 4, communication: 2 },
+          nextEvent_he:
+            "עדכון חדש\n\nהתיעוד השיטתי של הרציונל מסייע למנהלי האזורים להסביר את מודל התמחור החדש ללקוחות בביטחון, בלי לחכות לאישור על כל החלטה.",
         },
       ],
     },

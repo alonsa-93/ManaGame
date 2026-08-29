@@ -1,5 +1,5 @@
 import { describe, expect, it, beforeEach } from "vitest";
-import { aiUsageSummary, costOf, recordAiCall, resetAiUsage } from "@/lib/ai-usage";
+import { aiUsageDaily, aiUsageSummary, costOf, recordAiCall, resetAiUsage } from "@/lib/ai-usage";
 
 beforeEach(() => resetAiUsage());
 
@@ -40,5 +40,36 @@ describe("aiUsageSummary", () => {
   it("records the timestamp of the first call, so the dashboard can say since when", () => {
     recordAiCall({ model: "claude-sonnet-5", purpose: "connection_test", inputTokens: 10, outputTokens: 1 });
     expect(aiUsageSummary().since).toBeTypeOf("string");
+  });
+});
+
+describe("aiUsageDaily", () => {
+  it("is empty before anything is recorded", () => {
+    expect(aiUsageDaily()).toEqual([]);
+  });
+
+  it("buckets calls by UTC calendar date", () => {
+    recordAiCall({ model: "claude-sonnet-5", purpose: "conversational_turn", inputTokens: 1000, outputTokens: 100, at: "2026-08-01T09:00:00.000Z" });
+    recordAiCall({ model: "claude-sonnet-5", purpose: "conversational_turn", inputTokens: 1000, outputTokens: 100, at: "2026-08-01T23:00:00.000Z" });
+    recordAiCall({ model: "claude-sonnet-5", purpose: "conversational_turn", inputTokens: 1000, outputTokens: 100, at: "2026-08-03T09:00:00.000Z" });
+
+    const days = aiUsageDaily();
+    expect(days.map((d) => d.date)).toEqual(["2026-08-01", "2026-08-02", "2026-08-03"]);
+    expect(days[0]).toMatchObject({ date: "2026-08-01", calls: 2 });
+    expect(days[0]!.estimatedUsd).toBeCloseTo(costOf("claude-sonnet-5", 2000, 200), 9);
+  });
+
+  it("fills a gap day with zero rather than skipping it, so a chart never silently jumps", () => {
+    recordAiCall({ model: "claude-sonnet-5", purpose: "conversational_turn", inputTokens: 1000, outputTokens: 100, at: "2026-08-01T09:00:00.000Z" });
+    recordAiCall({ model: "claude-sonnet-5", purpose: "conversational_turn", inputTokens: 1000, outputTokens: 100, at: "2026-08-03T09:00:00.000Z" });
+
+    const days = aiUsageDaily();
+    expect(days.map((d) => d.date)).toEqual(["2026-08-01", "2026-08-02", "2026-08-03"]);
+    expect(days[1]).toEqual({ date: "2026-08-02", calls: 0, estimatedUsd: 0 });
+  });
+
+  it("returns a single day when everything happened on one date", () => {
+    recordAiCall({ model: "claude-sonnet-5", purpose: "conversational_turn", inputTokens: 1000, outputTokens: 100, at: "2026-08-01T09:00:00.000Z" });
+    expect(aiUsageDaily()).toHaveLength(1);
   });
 });

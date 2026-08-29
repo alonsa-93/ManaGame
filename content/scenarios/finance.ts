@@ -158,6 +158,8 @@ const managerScenario: Scenario = {
           deltas: { forecast_accuracy: 1 },
           evidence_he: "חילק מחדש את משימות הסגירה בצוות כדי להפחית את התלות באיש מפתח בודד.",
           criteriaSignals: { workload_management: 4 },
+          nextEvent_he:
+            "עדכון חדש\n\nהחלוקה מחדש עבדה: התחזית הושלמה בזמן ואף אחד בצוות אינו נקודת כשל בודדת. סגירת הרבעון נראית יציבה.",
         },
         {
           key: "bring_temp_fpna_support",
@@ -174,6 +176,8 @@ const managerScenario: Scenario = {
           deltas: { forecast_accuracy: -2 },
           evidence_he: "בחר להמשיך כרגיל ללא התאמה לעומס ולסיכון הידע שדווחו.",
           criteriaSignals: { realism: 2, workload_management: 1, knowledge_protection: 1 },
+          nextEvent_he:
+            "עדכון חדש\n\nהאנליסט המרכזי נעדר יום בגלל תשישות, ומודל התחזית שהיה מרוכז אצלו נתקע בדיוק לפני מועד הסגירה. יש להשלים אותו בזמן קצר בלי מי שבנה אותו.",
         },
       ],
     },
@@ -352,6 +356,8 @@ const vpScenario: Scenario = {
           deltas: {},
           evidence_he: "דאג לתעד באופן מובנה את מודל התזרים הקריטי שהיה מרוכז אצל אנליסט בודד.",
           criteriaSignals: { knowledge_protection: 5 },
+          nextEvent_he:
+            "עדכון חדש\n\nהתיעוד המובנה של מודל התזרים מאפשר לכל אחד בצוות לענות על שאלות הדירקטוריון בביטחון, לא רק לאנליסט שבנה אותו.",
         },
         {
           key: "bring_temp_treasury_support",
@@ -376,6 +382,8 @@ const vpScenario: Scenario = {
           deltas: { forecast_accuracy: -2 },
           evidence_he: "בחר להמשיך כרגיל ללא התאמה לעומס ולסיכון הידע שדווחו.",
           criteriaSignals: { realism: 2, workload_management: 1, knowledge_protection: 1 },
+          nextEvent_he:
+            "עדכון חדש\n\nהעומס הכפול גבה מחיר: טעות בהזנת נתונים למודל התזרים התגלתה שעה לפני הדירקטוריון, ויש לתקן אותה במהירות תחת עין בוחנת.",
         },
       ],
     },

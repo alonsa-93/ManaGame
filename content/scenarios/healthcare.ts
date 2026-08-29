@@ -190,6 +190,8 @@ const managerScenario: Scenario = {
           deltas: {},
           evidence_he: "דאג לתעד את פרוטוקול הבדיקה הקריטי לפני שהאחראי המרכזי יצא לחופשה.",
           criteriaSignals: { knowledge_protection: 5 },
+          nextEvent_he:
+            "עדכון חדש\n\nהתיעוד המיידי של פרוטוקול הבדיקה מאפשר לחברי צוות נוספים לאמת את הממצאים באופן עצמאי, מה שמחזק את מהימנות הדוח הסופי.",
         },
         {
           key: "redistribute_investigation_load",
@@ -214,6 +216,8 @@ const managerScenario: Scenario = {
           deltas: { patient_safety_risk: 1 },
           evidence_he: "בחר להמשיך באותו קצב עבודה ללא שינוי, חרף סימני העומס שדווחו.",
           criteriaSignals: { realism: 2, workload_management: 1 },
+          nextEvent_he:
+            "עדכון חדש\n\nהעומס גבה מחיר: אחראי הבדיקות הטכניות טעה בתיעוד תוצאה אחת בגלל עייפות, והטעות התגלתה רק בבדיקת האיכות האחרונה — ומחייבת חזרה על חלק מהחקירה.",
         },
       ],
     },
@@ -437,6 +441,8 @@ const vpScenario: Scenario = {
           deltas: { schedule: -1, regulatory_readiness: 2 },
           evidence_he: "העניק ארכה מבוקרת של 48 שעות להשלמת הבדיקה, תוך עדכון שקוף של המנכ\"ל על הסיבה.",
           criteriaSignals: { knowing_when_to_stop: 4, communication: 3 },
+          nextEvent_he:
+            "עדכון חדש\n\n48 השעות הנוספות הניבו תוצאה: נתוני המדגם השלישי מדייקים את היקף הבעיה ומאפשרים החלטה מבוססת יותר, מבלי לפגוע משמעותית בלוח הזמנים.",
         },
         {
           key: "decide_now_without_third_sample",
@@ -445,6 +451,8 @@ const vpScenario: Scenario = {
           deltas: { schedule: 2, patient_safety_risk: 2 },
           evidence_he: "בחר לקבל החלטה סופית באותו יום, ללא המתנה לנתוני המדגם השלישי.",
           criteriaSignals: { information_acquisition: 1, diagnosis_before_action: 2, knowing_when_to_stop: 2 },
+          nextEvent_he:
+            "עדכון חדש\n\nההחלטה שהתקבלה ללא נתוני המדגם השלישי מתבררת כשגויה בחלקה: תוצאות שהגיעו למחרת מראות שההיקף המדויק שונה ממה שהונח, ונדרשת התאמה מהירה של תוכנית הפעולה.",
         },
         {
           key: "redistribute_crossfunctional_load",

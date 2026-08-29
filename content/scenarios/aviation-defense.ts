@@ -152,6 +152,8 @@ const managerScenario: Scenario = {
           deltas: { safety_margin: 1 },
           evidence_he: "חילק מחדש את עומס העבודה ההנדסי לאחר שזוהו סימני שחיקה אצל אנשי מפתח.",
           criteriaSignals: { workload_management: 4, communication: 2 },
+          nextEvent_he:
+            "עדכון חדש\n\nהחלוקה מחדש עבדה: צוות ההנדסה מגיע לבדיקות הקבלה ללא סימני שחיקה, ותהליך ההסמכה מתקדם ללא עיכובים נוספים.",
         },
         {
           key: "document_certification_knowledge",
@@ -176,6 +178,8 @@ const managerScenario: Scenario = {
           deltas: { safety_margin: -2 },
           evidence_he: "בחר להמשיך לפי ההקצאה הקיימת ללא התאמה לעומס ולסימני השחיקה שדווחו.",
           criteriaSignals: { realism: 2, workload_management: 1 },
+          nextEvent_he:
+            "עדכון חדש\n\nהעומס גבה מחיר: מהנדס מרכזי החמיץ פרט בתיעוד ההסמכה בגלל ריבוי משימות במקביל, והפרט עולה רק בבדיקת הקבלה עצמה — ומחייב סבב תיקון נוסף.",
         },
       ],
     },
@@ -357,6 +361,8 @@ const vpScenario: Scenario = {
           deltas: { safety_margin: 2 },
           evidence_he: "כינס ועדת סקירה הנדסית מובנית כדי להכריע בין הערכות הסיכון השונות, במקום להכריע לבד.",
           criteriaSignals: { diagnosis_before_action: 4, prioritization: 3 },
+          nextEvent_he:
+            "עדכון חדש\n\nועדת הסקירה ההנדסית הגיעה להכרעה מבוססת בין שתי ההערכות, וכעת יש בידיכם עמדה מקצועית אחודה להצגה לפני אבן הדרך.",
         },
         {
           key: "mandate_decision_documentation",
@@ -381,6 +387,8 @@ const vpScenario: Scenario = {
           deltas: { safety_margin: -3, schedule: 2 },
           evidence_he: "אימץ את ההערכה האופטימית מבין השתיים מבלי לברר לעומק את מקור הפער ביניהן.",
           criteriaSignals: { communication: 1, realism: 1 },
+          nextEvent_he:
+            "עדכון חדש\n\nההערכה האופטימית שאומצה ללא בירור מתבררת כחלקית: נתונים נוספים מראים שהערכת הסיכון השנייה הייתה קרובה יותר למציאות, וכעת יש לתקן את המצג רגע לפני אבן הדרך.",
         },
       ],
     },

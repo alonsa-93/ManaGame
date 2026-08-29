@@ -167,6 +167,8 @@ const managerScenario: Scenario = {
           deltas: { containment: 1 },
           evidence_he: "ארגן סבב משמרות מסודר כדי למנוע שחיקה של אנליסטים מרכזיים.",
           criteriaSignals: { workload_management: 5 },
+          nextEvent_he:
+            "עדכון חדש\n\nסבב המשמרות המסודר עבד: הצוות מגיע רענן לסגירת האירוע, ואין סימני עייפות שפוגעים בדיוק הבדיקה הסופית.",
         },
         {
           key: "bring_external_ir_firm",
@@ -199,6 +201,8 @@ const managerScenario: Scenario = {
           deltas: { containment: -2 },
           evidence_he: "בחר להמשיך את קצב העבודה הקיים ללא התאמה לסימני השחיקה שדווחו.",
           criteriaSignals: { realism: 2, workload_management: 1 },
+          nextEvent_he:
+            "עדכון חדש\n\nהעומס גבה מחיר: אנליסט SOC עייף פספס התראה נוספת מאותו חשבון חשוד, וזו מתגלה רק כעת — ומרחיבה מחדש את שאלת היקף החשיפה.",
         },
       ],
     },
@@ -392,6 +396,8 @@ const vpScenario: Scenario = {
           deltas: { containment: 2, exposure_risk: -2 },
           evidence_he: "הגדיר מבנה סמכויות ברור וסמכויות החלטה, ותקשר אותו לכלל הצוותים המעורבים.",
           criteriaSignals: { communication: 5, workload_management: 3 },
+          nextEvent_he:
+            "עדכון חדש\n\nמבנה הסמכויות הברור עבד: כל האתרים פועלים לפי אותה מדיניות דיווח, וההחלטה הסופית מגיעה לדירקטוריון עם תמונה אחידה מכל האזורים.",
         },
         {
           key: "rotate_crisis_committee_members",
@@ -408,6 +414,8 @@ const vpScenario: Scenario = {
           deltas: { containment: -1, exposure_risk: 2 },
           evidence_he: "בחר לרכז את כל ההחלטות האזוריות במטה, ללא האצלה לצוותים המקומיים.",
           criteriaSignals: { workload_management: 1, knowledge_protection: 1, communication: 2 },
+          nextEvent_he:
+            "עדכון חדש\n\nריכוז ההחלטות במטה יצר עיכוב: שני אתרים אזוריים המתינו לאישור מהמטה ופרסמו מסרים לא עקביים ללקוחות מקומיים, לפני שהתיאום הושלם.",
         },
         {
           key: "document_decision_authority_log",
