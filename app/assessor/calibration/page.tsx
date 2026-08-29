@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Alert } from "@/components/ui/alert";
 import { CRITERIA } from "@/lib/scenario-schema";
+import { CalibrationAnchorsPanel } from "@/components/assessor/calibration-anchors-panel";
 
 export const dynamic = "force-dynamic";
 
@@ -49,12 +50,14 @@ export default async function CalibrationPage() {
         כיול משמש לבדיקת עקביות בין הרצות שופט ולבחינת רגישות הרובריקה לאורך זמן.
       </p>
 
+      <CalibrationAnchorsPanel />
+
       {reports.length === 0 ? (
         <Card className="p-6">
           <div className="rounded-mg-md border border-mg-border">
             <EmptyState
-              title="עדיין אין נתוני כיול להצגה."
-              description="כשיצטברו סשנים שהושלמו, פילוח הכיסוי והפיזור של הרובריקה יופיע כאן."
+              title="עדיין אין נתוני כיול מבוססי־סשנים להצגה."
+              description="עוגני הכיול למעלה זמינים כבר עכשיו. כשיצטברו סשנים שהושלמו, פילוח הכיסוי והפיזור של הרובריקה יופיע כאן."
             />
           </div>
         </Card>
